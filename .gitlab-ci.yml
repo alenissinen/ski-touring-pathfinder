@@ -1,12 +1,16 @@
+image: maven:3.9.6-eclipse-temurin-21
+
+stages:
+  - pages
+
 pages:
-  image: maven:3.9-eclipse-temurin-21
-  stage: deploy
+  stage: pages
   script:
-    - mvn javadoc:javadoc -q
-    - mkdir -p public
-    - cp -r docs/apidocs/. public/
+    - mvn clean package javadoc:javadoc
+    - mkdir public
+    - cp -r target/site/apidocs/* public/
   artifacts:
     paths:
       - public
-  rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  only:
+    - main
