@@ -7,5 +7,6 @@ pages:
   artifacts:
     paths:
       - public
-  only:
-    - main
+  pages: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
