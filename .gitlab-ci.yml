@@ -1,9 +1,14 @@
+image: maven:3.9.6-eclipse-temurin-21
+
+stages:
+  - pages
+
 pages:
-  image: maven:3.9-eclipse-temurin-21
-  stage: deploy
+  stage: pages
   script:
-    - mvn javadoc:javadoc -q
-    - mv docs public
+    - mvn clean package javadoc:javadoc
+    - mkdir public
+    - cp -r docs/apidocs/* public/
   artifacts:
     paths:
       - public
