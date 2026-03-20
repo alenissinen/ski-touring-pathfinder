@@ -46,10 +46,10 @@ public class HeightMap {
     public static HeightMap loadFromFile(String filePath) {}
 
     /**
-     * Returns height (y) on given x,z coordinate
-     * @return height (y) in meters
+     * Returns elevation (y) on given x,z coordinate
+     * @return elevation (y) in meters
      */
-    public float getHeight(int x, int z) {}
+    public float getElevation(int x, int z) {}
 
     /** Returns width (columns) of data grid */
     public float getWidth() {}
