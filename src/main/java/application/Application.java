@@ -2,18 +2,22 @@ package application;
 
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
+import rendering.Renderer;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
- * Main wrapper around mandatory functions such as window handling, render loop etc.
+ * Main application class responsible for the program lifecycle. Manages initialization,
+ * main loop and cleanup.
  */
 public class Application {
     /** Window object */
     private Window window;
     /** Application config */
     private Config config;
+    /** Renderer object */
+    private final Renderer renderer = new Renderer();
 
     /**
      * Constructor to create new application
@@ -48,22 +52,22 @@ public class Application {
     }
 
     /**
-     * Rendering loop of the application
+     * Main loop of the application
      */
     public void loop() {
         // LWJGl detects the current context and creates GLCapabilities instance
         // and makes the OpenGL bindings available
         GL.createCapabilities();
 
-        // Set color to black
+        // Set background color to black
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         // Run rendering loop until user closes the window
         while (!glfwWindowShouldClose(window.getHandle())) {
-            // Clear framebuffer
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            // Render new frame
+            renderer.render();
 
-            // Swap front and back buffers (show new frame)
+            // Swap front and back buffers (show the rendered frame)
             glfwSwapBuffers(window.getHandle());
 
             // Poll for any window events

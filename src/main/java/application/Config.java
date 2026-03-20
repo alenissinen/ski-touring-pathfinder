@@ -1,7 +1,7 @@
 package application;
 
 /**
- * Stores application configuration settings such as window properties and OpenGL version
+ * Stores application configuration settings such as window properties and OpenGL version.
  */
 public class Config {
     /** Window title */

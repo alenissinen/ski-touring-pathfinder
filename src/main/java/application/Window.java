@@ -6,7 +6,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 /**
- * Responsible for creating and handling a GLFW window
+ * Responsible for creating and handling the GLFW window
  */
 public class Window {
     /** Native GLFW Window handle */
