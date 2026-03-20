@@ -8,7 +8,7 @@ pages:
   script:
     - mvn clean package javadoc:javadoc
     - mkdir public
-    - cp -r target/site/apidocs/* public/
+    - cp -r docs/apidocs/* public/
   artifacts:
     paths:
       - public
