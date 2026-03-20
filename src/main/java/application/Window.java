@@ -1,4 +1,69 @@
 package application;
 
+import org.lwjgl.glfw.*;
+
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.system.MemoryUtil.*;
+
+/**
+ * Responsible for creating and handling a GLFW window
+ */
 public class Window {
+    /** Native GLFW Window handle */
+    private long window;
+
+    /** Configuration object containing window and application properties */
+    private Config config;
+
+    /**
+     * Constructs a new {@code Window} with the given configuration
+     * @param config The configuration to use for this window
+     */
+    public Window(Config config) {
+        this.config = config;
+    }
+
+    /**
+     * @return GLFW window handle
+     */
+    public long getHandle() { return window; }
+
+    /**
+     * Creates and initializes the GLFW window
+     * @throws RuntimeException if window creation fails
+     */
+    public void create() {
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // Window stays hidden until shown
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // Window is resizable
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, config.getOpenGlMajor()); // Set OpenGL major version
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, config.getOpenGlMinor()); // Set OpenGL minor version
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Force modern API and remove deprecated features
+
+        // Create window (NULL is just 0L but used for clarity)
+        window = glfwCreateWindow(config.getWidth(), config.getHeight(), config.getTitle(), NULL, NULL);
+        if (window == NULL) throw new RuntimeException("Failed to create GLFW window");
+
+        center();
+
+        // Make the window current OpenGL context
+        glfwMakeContextCurrent(window);
+
+        // Make the window visible
+        glfwShowWindow(window);
+    }
+
+    /**
+     * Centers the window
+     */
+    public void center() {
+        // Get the resolution of the primary monitor
+        GLFWVidMode monitorRes = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+        // Center the window
+        glfwSetWindowPos(
+                window,
+                (monitorRes.width() - config.getWidth()) / 2,
+                ((monitorRes.height() - config.getHeight()) / 2)
+        );
+    }
 }

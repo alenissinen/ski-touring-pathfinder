@@ -18,3 +18,8 @@ Aineistot on hankittu maanmittauslaitoksen tiedostopalvelusta.
 
 ### Lähteet
 https://asiointi.maanmittauslaitos.fi/karttapaikka/tiedostopalvelu/
+https://www.javier8a.com/itc/bd1/articulo.pdf
+https://javadoc.lwjgl.org/index.html
+https://en.wikipedia.org/wiki/SOLID
+https://docs.gl/
+https://www.glfw.org/docs/3.3/window_guide.html
