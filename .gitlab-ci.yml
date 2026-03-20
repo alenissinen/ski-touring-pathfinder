@@ -1,0 +1,11 @@
+pages:
+  image: maven:3.9-eclipse-temurin-21
+  stage: deploy
+  script:
+    - mvn javadoc:javadoc -q
+    - mv docs public
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
