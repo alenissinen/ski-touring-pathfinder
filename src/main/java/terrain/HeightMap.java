@@ -1,5 +1,7 @@
 package terrain;
 
+import exceptions.HeightMapParseException;
+
 /**
  * Stores elevation data parsed from ASCII raster files and provides methods
  * to access height values by coordinate
@@ -27,7 +29,7 @@ public class HeightMap {
      * @param height Grid row amount
      * @param xLL xllcorner value from ASCII data
      * @param yLL yllcorner value from ASCII data
-     * @param cellSize cellsize value from ASCII data
+     * @param cellSize cellsize value from ASCII data (meters)
      */
     private HeightMap(
             float[][] data,
@@ -43,23 +45,30 @@ public class HeightMap {
      * @param filePath Path of the ASCII height map
      * @return HeightMap object of a height map
      */
-    public static HeightMap loadFromFile(String filePath) {}
+    public static HeightMap fromAsciiFile(String filePath) throws HeightMapParseException {}
 
     /**
-     * Returns elevation (y) on given x,z coordinate
-     * @return elevation (y) in meters
+     * @return Elevation (y) in meters
      */
     public float getElevation(int x, int z) {}
 
-    /** Returns width (columns) of data grid */
-    public float getWidth() {}
+    /**
+     * @return Width (columns) of data grid
+     */
+    public int getWidth() {}
 
-    /** Returns height (rows) of data grid */
-    public float getHeight() {}
+    /**
+     * @return Height (rows) of data grid
+     */
+    public int getHeight() {}
 
-    /** Returns slope angle in degrees at given point */
+    /**
+     * @param x Grid X position
+     * @param z Grid Z positon
+     * @return Slope angle in degrees at given point
+     */
     public float getSlopeAngle(int x, int z) {}
 
     /** Merges two heightmaps which share the same xllcorner value */
-    public static HeightMap merge(HeightMap north, HeightMap south) {}
+    public static HeightMap merge(HeightMap north, HeightMap south) throws IllegalArgumentException {}
 }
