@@ -1,5 +1,6 @@
 package rendering;
 
+import application.Application;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
@@ -16,4 +17,10 @@ public class Renderer {
         // Clear framebuffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
+
+    /**
+     * Releases all OpenGL resources held by the renderer.
+     * Called by {@link Application#cleanUp()} on shutdown.
+     */
+    public void cleanUp() {}
 }

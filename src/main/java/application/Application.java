@@ -14,8 +14,10 @@ import static org.lwjgl.opengl.GL11.*;
 public class Application {
     /** Window object */
     private Window window;
+
     /** Application config */
     private Config config;
+
     /** Renderer object */
     private final Renderer renderer = new Renderer();
 
@@ -35,6 +37,9 @@ public class Application {
         // Initialize GLFW and start render loop
         init();
         loop();
+
+        // Clean resources before shutting down
+        cleanUp();
     }
 
     /**
@@ -73,5 +78,15 @@ public class Application {
             // Poll for any window events
             glfwPollEvents();
         }
+    }
+
+    /**
+     * Releases all resources on application shutdown.
+     * Disposes OpenGL resources, destroys the GLFW window and terminates GLFW.
+     */
+    public void cleanUp() {
+        renderer.cleanUp();
+        glfwDestroyWindow(window.getHandle());
+        glfwTerminate();
     }
 }
