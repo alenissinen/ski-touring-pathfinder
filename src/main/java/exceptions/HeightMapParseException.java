@@ -3,9 +3,6 @@ package exceptions;
 import java.io.IOException;
 
 public class HeightMapParseException extends IOException {
-    /** Path of the file that caused the exception */
-    private final String filePath;
-
     /**
      * Constructs a new {@code HeightMapParseException} with a message and the
      * path of the file that failed to parse.
@@ -15,7 +12,6 @@ public class HeightMapParseException extends IOException {
      */
     public HeightMapParseException(String message, String filePath) {
         super("[file: " + filePath + "]: " + message);
-        this.filePath = filePath;
     }
 
     /**
@@ -28,6 +24,5 @@ public class HeightMapParseException extends IOException {
      */
     public HeightMapParseException(String message, Throwable cause, String filePath) {
         super("[file: " + filePath + "]: " + message + "\n" + cause);
-        this.filePath = filePath;
     }
 }
