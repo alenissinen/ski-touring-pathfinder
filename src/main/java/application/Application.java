@@ -13,10 +13,10 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class Application {
     /** Window object */
-    private Window window;
+    private final Window window;
 
     /** Application config */
-    private Config config;
+    private final Config config;
 
     /** Renderer object */
     private final Renderer renderer = new Renderer();
@@ -67,16 +67,23 @@ public class Application {
         // Set background color to black
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+        // Convert target fps to target frametime
+        double targetFrameTime = 1.0 / config.getTargetFps();
+
+        // Keep track of the last time when something was rendered
+        double lastTime = glfwGetTime();
+
         // Run rendering loop until user closes the window
+        // Render new frame -> swap buffers (display the frame) -> poll for window events
         while (!glfwWindowShouldClose(window.getHandle())) {
-            // Render new frame
-            renderer.render();
+            // Difference in time between current time and last time something was rendered
+            double deltaTime = glfwGetTime() - lastTime;
 
-            // Swap front and back buffers (show the rendered frame)
-            glfwSwapBuffers(window.getHandle());
-
-            // Poll for any window events
-            glfwPollEvents();
+            if (deltaTime >= targetFrameTime) {
+                renderer.render(deltaTime);
+                glfwSwapBuffers(window.getHandle());
+                glfwPollEvents();
+            }
         }
     }
 
