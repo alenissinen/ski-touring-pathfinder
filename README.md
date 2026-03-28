@@ -33,3 +33,4 @@ https://www.youtube.com/watch?v=DsMohErqXzg
 https://www.youtube.com/watch?v=xoqESu9iOUE  
 https://www.theseus.fi/bitstream/handle/10024/505164/Procedural%20terrain%20generation%20plane%20and%20spherical%20surfaces.pdf?sequence=2&isAllowed=y  
 https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html  
+https://www.datacamp.com/tutorial/a-star-algorithm  
