@@ -1,20 +1,28 @@
 package pathfinding;
 
 /**
- * Represents a single node in the A* graph, stores its position, movement costs,
+ * Represents a single node in the A* graph, stores its position, movement
+ * costs,
  * and reference to its parent node.
  *
- * <p>Implements {@link Comparable} so that nodes can be ordered by their {@code f} value
- * in a {@link java.util.PriorityQueue}.</p>
+ * <p>
+ * Implements {@link Comparable} so that nodes can be ordered by their {@code f}
+ * value
+ * in a {@link java.util.PriorityQueue}.
+ * </p>
  *
- * <p>Cost values:</p>
+ * <p>
+ * Cost values:
+ * </p>
  * <ul>
- *     <li>{@code g} - actual movement cost from the start node to current node</li>
- *     <li>{@code h} - heuristic estimate of the cost from current node to the goal</li>
- *     <li>{@code f} - total estimated cost: {@code g + h}</li>
+ * <li>{@code g} - actual movement cost from the start node to current node</li>
+ * <li>{@code h} - heuristic estimate of the cost from current node to the
+ * goal</li>
+ * <li>{@code f} - total estimated cost: {@code g + h}</li>
  * </ul>
  *
- * @see <a href="https://www.datacamp.com/tutorial/a-star-algorithm">Datacamp A* guide</a>
+ * @see <a href="https://www.datacamp.com/tutorial/a-star-algorithm">Datacamp A*
+ *      guide</a>
  */
 public class Node implements Comparable<Node> {
     /** Grid X coordinate of this node */
@@ -44,51 +52,61 @@ public class Node implements Comparable<Node> {
      * @param x Grid X position
      * @param z Grid Z position
      */
-    public Node(int x, int z) {}
+    public Node(int x, int z) {
+    }
 
     /**
      * Compares current node to another node by {@code f} cost.
      *
      * @param other The node to be compared
-     * @return Negative value if this node has lower cost, positive if higher, zero if equal
+     * @return Negative value if this node has lower cost, positive if higher, zero
+     *         if equal
      */
     @Override
-    public int compareTo(Node other) {}
+    public int compareTo(Node other) {
+    }
 
     /**
      * @return Grid X coordinate
      */
-    public int getX() {}
+    public int getX() {
+    }
 
     /**
      * @return Grid Z coordinate
      */
-    public int getZ() {}
+    public int getZ() {
+    }
 
     /**
      * @return Actual movement cost from start node to current node
      */
-    public float getG() {}
+    public float getG() {
+    }
 
     /**
      * @return Heuristic estimate from current node to goal
      */
-    public float getH() {}
+    public float getH() {
+    }
 
     /**
      * @return Total estimated cost
      */
-    public float getF() {}
+    public float getF() {
+    }
 
     /**
      * @return Slope angle in degrees at current nodes position
      */
-    public float getSlopeAngle() {}
+    public float getSlopeAngle() {
+    }
 
     /**
      * @return Parent node, returns {@code null} if current node is start node
      */
-    public Node getParent() {}
+    public Node getParent() {
+    }
 
     /**
      * Sets the movement costs for this node and updates {@link #f} automatically.
@@ -96,15 +114,18 @@ public class Node implements Comparable<Node> {
      * @param g Actual cost from start
      * @param h Heuristic estimate to goal
      */
-    public void setCosts(float g, float h) {}
+    public void setCosts(float g, float h) {
+    }
 
     /**
      * @param slopeAngle Slope angle in degrees at current nodes position
      */
-    public void setSlopeAngle(float slopeAngle) {}
+    public void setSlopeAngle(float slopeAngle) {
+    }
 
     /**
      * @param parent Parent node in the pathfinding tree
      */
-    public void setParent(Node parent) {}
+    public void setParent(Node parent) {
+    }
 }

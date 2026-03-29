@@ -17,6 +17,7 @@ public class Window {
 
     /**
      * Constructs a new {@code Window} with the given configuration
+     * 
      * @param config The configuration to use for this window
      */
     public Window(Config config) {
@@ -26,10 +27,13 @@ public class Window {
     /**
      * @return GLFW window handle
      */
-    public long getHandle() { return window; }
+    public long getHandle() {
+        return window;
+    }
 
     /**
      * Creates and initializes the GLFW window
+     * 
      * @throws RuntimeException if window creation fails
      */
     public void create() {
@@ -37,11 +41,13 @@ public class Window {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // Window is resizable
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, config.getOpenGlMajor()); // Set OpenGL major version
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, config.getOpenGlMinor()); // Set OpenGL minor version
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Force modern API and remove deprecated features
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Force modern API and remove deprecated
+                                                                       // features
 
         // Create window (NULL is just 0L but used for clarity)
         window = glfwCreateWindow(config.getWidth(), config.getHeight(), config.getTitle(), NULL, NULL);
-        if (window == NULL) throw new RuntimeException("Failed to create GLFW window");
+        if (window == NULL)
+            throw new RuntimeException("Failed to create GLFW window");
 
         center();
 
@@ -63,7 +69,6 @@ public class Window {
         glfwSetWindowPos(
                 window,
                 (monitorRes.width() - config.getWidth()) / 2,
-                ((monitorRes.height() - config.getHeight()) / 2)
-        );
+                ((monitorRes.height() - config.getHeight()) / 2));
     }
 }

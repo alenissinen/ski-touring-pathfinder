@@ -10,11 +10,13 @@ import java.util.Set;
  * Handles camera movement and orientation over the terrain, maintains the
  * view matrix used in rendering.
  *
- * <p>Movement is controlled with keyboard and mouse:</p>
+ * <p>
+ * Movement is controlled with keyboard and mouse:
+ * </p>
  * <ul>
- *     <li>{@code WASD} - forward/backward/left/right</li>
- *     <li>{@code Q/E} - up/down</li>
- *     <li>{@code Mouse} - look around ({@link MouseMode#FLIGHT})</li>
+ * <li>{@code WASD} - forward/backward/left/right</li>
+ * <li>{@code Q/E} - up/down</li>
+ * <li>{@code Mouse} - look around ({@link MouseMode#FLIGHT})</li>
  * </ul>
  */
 public class Camera {
@@ -54,21 +56,23 @@ public class Camera {
     /**
      * Constructs a new {@code Camera} at the given positon.
      *
-     * @param position Initial position in world space
-     * @param fov Vertical field of view in degrees
+     * @param position    Initial position in world space
+     * @param fov         Vertical field of view in degrees
      * @param aspectRatio Viewport width/height
-     * @param moveSpeed Movement speed in m/s
+     * @param moveSpeed   Movement speed in m/s
      */
-    public Camera(Vector3f position, float fov, float aspectRatio, float moveSpeed) {}
+    public Camera(Vector3f position, float fov, float aspectRatio, float moveSpeed) {
+    }
 
     /**
      * Updates camera position based on keyboard input and elapsed time.
      * Must be called once per rendered frame!
      *
-     * @param deltaTime Time in seconds since last render
+     * @param deltaTime   Time in seconds since last render
      * @param pressedKeys Set of currently pressed keys
      */
-    public void update(float deltaTime, Set<Integer> pressedKeys) {}
+    public void update(float deltaTime, Set<Integer> pressedKeys) {
+    }
 
     /**
      * Rotates camera based on mouse movement.
@@ -78,51 +82,61 @@ public class Camera {
      * @param deltaX Mouse movement in the X-axis
      * @param deltaY Mouse movement in the Y-axis
      */
-    public void rotate(float deltaX, float deltaY) {}
+    public void rotate(float deltaX, float deltaY) {
+    }
 
     /**
      * Recalculates projection matrix if window is resized.
      *
-     * @param width New viewport width
+     * @param width  New viewport width
      * @param height New viewport height
      */
-    public void onResize(int width, int height) {}
+    public void onResize(int width, int height) {
+    }
 
     /**
      * Switches mouse interaction mode and updates GLFW cursor.
      * <ul>
-     *     <li>{@link MouseMode#FLIGHT} - cursor is hidden and mouse movement rotates camera.</li>
-     *     <li>{@link MouseMode#SELECTION} - cursor is visible and mouse is used for point selection.</li>
+     * <li>{@link MouseMode#FLIGHT} - cursor is hidden and mouse movement rotates
+     * camera.</li>
+     * <li>{@link MouseMode#SELECTION} - cursor is visible and mouse is used for
+     * point selection.</li>
      * </ul>
      *
-     * @param mouseMode New mouse mode
+     * @param mouseMode    New mouse mode
      * @param windowHandle GLFW window handle
      */
-    public void setMouseMode(MouseMode mouseMode, long windowHandle) {}
+    public void setMouseMode(MouseMode mouseMode, long windowHandle) {
+    }
 
     /**
      * Recalculates view matrix from current position and orientation.
      * Called when camera moves or rotates.
      */
-    private void updateViewMatrix() {}
+    private void updateViewMatrix() {
+    }
 
     /**
      * @return Current view matrix
      */
-    public Matrix4f getViewMatrix() {}
+    public Matrix4f getViewMatrix() {
+    }
 
     /**
      * @return Current projection matrix
      */
-    public Matrix4f getProjectionMatrix() {}
+    public Matrix4f getProjectionMatrix() {
+    }
 
     /**
      * @return Current camera position in world space
      */
-    public Vector3f getPosition() {}
+    public Vector3f getPosition() {
+    }
 
     /**
      * @return Current mouse interaction mode
      */
-    public MouseMode getMouseMode() {}
+    public MouseMode getMouseMode() {
+    }
 }

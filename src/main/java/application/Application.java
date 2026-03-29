@@ -8,7 +8,8 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
- * Main application class responsible for the program lifecycle. Manages initialization,
+ * Main application class responsible for the program lifecycle. Manages
+ * initialization,
  * main loop and cleanup.
  */
 public class Application {
@@ -19,15 +20,17 @@ public class Application {
     private final Config config;
 
     /** Renderer object */
-    private final Renderer renderer = new Renderer();
+    private final Renderer renderer;
 
     /**
      * Constructor to create new application
+     * 
      * @param config Application config (see {@link Config})
      */
     public Application(Config config) {
         this.config = config;
         this.window = new Window(config);
+
     }
 
     /**
@@ -50,7 +53,8 @@ public class Application {
         GLFWErrorCallback.createPrint(System.err).set();
 
         // Initialize GLFW
-        if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
+        if (!glfwInit())
+            throw new IllegalStateException("Unable to initialize GLFW");
 
         // Create GLFW window
         this.window.create();
@@ -74,10 +78,11 @@ public class Application {
         float lastTime = (float) glfwGetTime();
 
         // Run rendering loop until user closes the window
-        // Render new frame -> swap buffers (display the frame) -> poll for window events
+        // Render new frame -> swap buffers (display the frame) -> poll for window
+        // events
         while (!glfwWindowShouldClose(window.getHandle())) {
             // Difference in time between current time and last time something was rendered
-            float deltaTime = ((float) glfwGetTime() - lastTime);
+            double deltaTime = glfwGetTime() - lastTime;
 
             if (deltaTime >= targetFrameTime) {
                 renderer.render(deltaTime);

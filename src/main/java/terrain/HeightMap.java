@@ -28,7 +28,8 @@ public class HeightMap {
     private double cellSize;
 
     /**
-     * Private constructor for loadFromFile to use
+     * Package-private constructor for direct instantiation and testing.
+     * Production code should use {@link #fromAsciiFile(String)} instead!
      * 
      * @param data     Height grid
      * @param width    Grid column amount
@@ -37,7 +38,7 @@ public class HeightMap {
      * @param yLL      yllcorner value from ASCII data
      * @param cellSize cellsize value from ASCII data (meters)
      */
-    private HeightMap(
+    HeightMap(
             float[][] data,
             int width,
             int height,
