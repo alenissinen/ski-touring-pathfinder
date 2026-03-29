@@ -68,16 +68,16 @@ public class Application {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         // Convert target fps to target frametime
-        double targetFrameTime = 1.0 / config.getTargetFps();
+        float targetFrameTime = 1.0f / config.getTargetFps();
 
         // Keep track of the last time when something was rendered
-        double lastTime = glfwGetTime();
+        float lastTime = (float) glfwGetTime();
 
         // Run rendering loop until user closes the window
         // Render new frame -> swap buffers (display the frame) -> poll for window events
         while (!glfwWindowShouldClose(window.getHandle())) {
             // Difference in time between current time and last time something was rendered
-            double deltaTime = glfwGetTime() - lastTime;
+            float deltaTime = ((float) glfwGetTime() - lastTime);
 
             if (deltaTime >= targetFrameTime) {
                 renderer.render(deltaTime);

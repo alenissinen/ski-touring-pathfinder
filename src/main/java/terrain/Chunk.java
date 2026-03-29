@@ -64,7 +64,7 @@ public class Chunk implements AutoCloseable {
     /**
      * @return Whether this chunk has been uploaded to the GPU.
      */
-    public boolean isUploaded() {}
+    public boolean isUploaded() { return uploaded; }
 
     /**
      * Generates mesh data from the heightmap and uploads it to the GPU.

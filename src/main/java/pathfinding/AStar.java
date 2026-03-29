@@ -77,4 +77,20 @@ public class AStar {
      * @return Euclidean distance from {@code node} to the goal
      */
     private float calculateH(Node node, int goalX, int goalZ) {}
+
+    /**
+     * Recontsructs the path by following parent references from the goal node
+     * back to the start node. The resulting list is ordered from start to goal.
+     * 
+     * @param goal The goal node from found path
+     * @return Ordered list of nodes from start to goal
+     */
+    private List<Node> reconstructPath(Node goal) {}
+
+    /**
+     * Returns the current path found by {@link #findPath}.
+     * 
+     * @return Ordered list of {@link Node} objects, or an empty list if no path exists
+     */
+    public List<Node> getPath() {}
 }
