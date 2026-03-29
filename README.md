@@ -35,3 +35,5 @@ https://www.theseus.fi/bitstream/handle/10024/505164/Procedural%20terrain%20gene
 https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html  
 https://www.datacamp.com/tutorial/a-star-algorithm  
 https://learnopengl.com/Getting-started/Shaders  
+https://www.youtube.com/watch?v=q5jOLztcvsM  
+https://learnopengl.com/Getting-started/Camera  
