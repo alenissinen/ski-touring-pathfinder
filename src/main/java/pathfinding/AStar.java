@@ -2,6 +2,7 @@ package pathfinding;
 
 import terrain.HeightMap;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -56,6 +57,11 @@ public class AStar {
      * @param heightMap Current height map in use
      */
     public AStar(HeightMap heightMap) {
+        this.heightMap = heightMap;
+
+        // Initialize other variables
+        this.openSet = new PriorityQueue<Node>();
+        this.closedSet = new HashSet<Node>();
     }
 
     /**
@@ -68,6 +74,8 @@ public class AStar {
      * @return Ordered list of {@link Node} objects from start to goal
      */
     public List<Node> findPath(int startX, int startZ, int goalX, int goalZ) {
+        // TODO: remove placeholder
+        return new ArrayList<Node>();
     }
 
     /**
@@ -81,6 +89,8 @@ public class AStar {
      * @return Movement cost from {@code current} to {@code neighbor}
      */
     private float calculateG(Node current, Node neighbor, boolean isDiagonal) {
+        // TODO: remove placeholder
+        return 0.0f;
     }
 
     /**
@@ -93,6 +103,8 @@ public class AStar {
      * @return Euclidean distance from {@code node} to the goal
      */
     private float calculateH(Node node, int goalX, int goalZ) {
+        // TODO: remove placeholder
+        return 0.0f;
     }
 
     /**
@@ -103,6 +115,8 @@ public class AStar {
      * @return Ordered list of nodes from start to goal
      */
     private List<Node> reconstructPath(Node goal) {
+        // TODO: remove placeholder
+        return new ArrayList<Node>();
     }
 
     /**
@@ -112,5 +126,6 @@ public class AStar {
      *         exists
      */
     public List<Node> getPath() {
+        return this.path;
     }
 }

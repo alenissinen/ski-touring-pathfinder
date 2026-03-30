@@ -31,6 +31,8 @@ public class Application {
         this.config = config;
         this.window = new Window(config);
 
+        // TODO: remove placeholder
+        this.renderer = new Renderer(null, null, null);
     }
 
     /**

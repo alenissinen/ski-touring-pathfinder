@@ -53,6 +53,8 @@ public class Node implements Comparable<Node> {
      * @param z Grid Z position
      */
     public Node(int x, int z) {
+        this.x = x;
+        this.z = z;
     }
 
     /**
@@ -64,48 +66,57 @@ public class Node implements Comparable<Node> {
      */
     @Override
     public int compareTo(Node other) {
+        // TODO: remove placeholder
+        return 0;
     }
 
     /**
      * @return Grid X coordinate
      */
     public int getX() {
+        return this.x;
     }
 
     /**
      * @return Grid Z coordinate
      */
     public int getZ() {
+        return this.z;
     }
 
     /**
      * @return Actual movement cost from start node to current node
      */
     public float getG() {
+        return this.g;
     }
 
     /**
      * @return Heuristic estimate from current node to goal
      */
     public float getH() {
+        return this.h;
     }
 
     /**
      * @return Total estimated cost
      */
     public float getF() {
+        return this.f;
     }
 
     /**
      * @return Slope angle in degrees at current nodes position
      */
     public float getSlopeAngle() {
+        return this.slopeAngle;
     }
 
     /**
      * @return Parent node, returns {@code null} if current node is start node
      */
     public Node getParent() {
+        return this.parent;
     }
 
     /**

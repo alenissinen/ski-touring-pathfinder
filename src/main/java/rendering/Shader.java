@@ -75,6 +75,8 @@ public class Shader implements AutoCloseable {
      * @throws ShaderException If the file cannot be read
      */
     private String loadSource(String shaderName) throws ShaderException {
+        // TODO: remove placeholder
+        return "";
     }
 
     /**
@@ -86,6 +88,8 @@ public class Shader implements AutoCloseable {
      * @throws ShaderException If compilation fails
      */
     private int compileShader(String source, int shaderType) throws ShaderException {
+        // TODO: remove placeholder
+        return 0;
     }
 
     /**

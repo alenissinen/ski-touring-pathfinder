@@ -3,8 +3,12 @@ package terrain;
 import rendering.Camera;
 import rendering.Renderer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import application.Constants;
 
 /**
  * Manages terrain chunks by tracking their state based on camera position.
@@ -47,6 +51,9 @@ public class ChunkManager {
      * @param renderDistance Maximum distance in chunks that are rendered
      */
     public ChunkManager(HeightMap heightMap, int renderDistance) {
+        this.heightMap = heightMap;
+        this.renderDistance = renderDistance;
+        this.loadedChunks = new HashMap<Integer, Chunk>();
     }
 
     /**
@@ -54,6 +61,9 @@ public class ChunkManager {
      *         rendered
      */
     public List<Chunk> getLoadedChunks() {
+        return loadedChunks.values()
+                .stream()
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -85,6 +95,7 @@ public class ChunkManager {
      * @return Packed key as {@code (chunkX << 8) | chunkZ}
      */
     private int packKey(int chunkX, int chunkZ) {
+        return (chunkX << 8) | chunkZ;
     }
 
     /**
@@ -94,6 +105,7 @@ public class ChunkManager {
      * @return Chunk grid X coordinate
      */
     private int toChunkX(float worldX) {
+        return (int) (worldX / (Constants.CHUNK_SIZE * Constants.WORLD_SCALE));
     }
 
     /**
@@ -103,5 +115,6 @@ public class ChunkManager {
      * @return Chunk grid Z coordinate
      */
     private int toChunkZ(float worldZ) {
+        return (int) (worldZ / (Constants.CHUNK_SIZE * Constants.WORLD_SCALE));
     }
 }

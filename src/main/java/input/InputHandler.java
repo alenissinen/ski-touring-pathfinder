@@ -1,5 +1,6 @@
 package input;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import application.MouseMode;
@@ -76,6 +77,13 @@ public class InputHandler {
      * @param aStar        A* instance for pathfinding
      */
     public InputHandler(long windowHandle, Camera camera, HeightMap heightMap, AStar aStar) {
+        this.windowHandle = windowHandle;
+        this.camera = camera;
+        this.heightMap = heightMap;
+        this.aStar = aStar;
+
+        // Initialize other variables
+        this.pressedKeys = new HashSet<Integer>();
     }
 
     /** Registers GLFW callbacks for input handling */
@@ -122,6 +130,8 @@ public class InputHandler {
      *         found
      */
     private int[] resolveGridCoordinates(double mouseX, double mouseY) {
+        // TODO: remove placeholder
+        return new int[0];
     }
 
     /**
@@ -131,5 +141,6 @@ public class InputHandler {
      * @return Set of currently pressed key codes
      */
     public Set<Integer> getPressedKeys() {
+        return this.pressedKeys;
     }
 }

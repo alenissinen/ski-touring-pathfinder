@@ -1,5 +1,7 @@
 package terrain;
 
+import application.Constants;
+
 /**
  * Represents a 125x125 section of the merged {@link HeightMap}.
  * Manages its own OpenGL resources (VBO, VAO, EBO) and handles data sharing
@@ -22,9 +24,6 @@ package terrain;
  * </p>
  */
 public class Chunk implements AutoCloseable {
-    /** Size of one chunk in grid units */
-    public static final int CHUNK_SIZE = 125;
-
     /** Reference to the full heightmap */
     private final HeightMap heightMap;
 
@@ -58,6 +57,11 @@ public class Chunk implements AutoCloseable {
      * @param chunkZ    Grid Z position of this chunk
      */
     public Chunk(HeightMap heightMap, int chunkX, int chunkZ) {
+        this.heightMap = heightMap;
+        this.chunkX = chunkX;
+        this.chunkZ = chunkZ;
+        this.offsetX = chunkX * Constants.CHUNK_SIZE;
+        this.offsetZ = chunkZ * Constants.CHUNK_SIZE;
     }
 
     /**

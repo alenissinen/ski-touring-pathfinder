@@ -62,6 +62,22 @@ public class Camera {
      * @param moveSpeed   Movement speed in m/s
      */
     public Camera(Vector3f position, float fov, float aspectRatio, float moveSpeed) {
+        this.position = position;
+        this.fov = fov;
+        this.aspectRatio = aspectRatio;
+        this.moveSpeed = moveSpeed;
+
+        // Initialize other variables
+        this.front = new Vector3f(0.0f, 0.0f, 1.0f); // Left handed coordinate system
+        this.up = new Vector3f(0.0f, 1.0f, 0.0f);
+        this.yaw = 90.0f; // Left handed coordinate system
+        this.pitch = 0.0f;
+        this.viewMatrix = new Matrix4f();
+        this.projectionMatrix = new Matrix4f();
+        this.mouseMode = MouseMode.FLIGHT;
+
+        // Calculate matrices
+        updateViewMatrix();
     }
 
     /**
@@ -120,23 +136,27 @@ public class Camera {
      * @return Current view matrix
      */
     public Matrix4f getViewMatrix() {
+        return this.viewMatrix;
     }
 
     /**
      * @return Current projection matrix
      */
     public Matrix4f getProjectionMatrix() {
+        return this.projectionMatrix;
     }
 
     /**
      * @return Current camera position in world space
      */
     public Vector3f getPosition() {
+        return this.position;
     }
 
     /**
      * @return Current mouse interaction mode
      */
     public MouseMode getMouseMode() {
+        return this.mouseMode;
     }
 }

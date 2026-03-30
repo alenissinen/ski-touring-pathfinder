@@ -39,6 +39,9 @@ public class Renderer {
      * @param aStar        A* instance for current path
      */
     public Renderer(Camera camera, ChunkManager chunkManager, AStar aStar) {
+        this.camera = camera;
+        this.chunkManager = chunkManager;
+        this.aStar = aStar;
     }
 
     /**
@@ -79,6 +82,8 @@ public class Renderer {
      * @return Combined MVP matrix ({@code projection * view * model})
      */
     private Matrix4f buildMVP(Matrix4f model) {
+        // TODO: remove placeholder
+        return new Matrix4f();
     }
 
     /**
