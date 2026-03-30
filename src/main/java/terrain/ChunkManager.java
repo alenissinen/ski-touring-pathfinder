@@ -28,9 +28,11 @@ import application.Constants;
  * Chunks are loaded dynamically as the camera moves, prioritized by distance.
  * Chunks that fall outside the rendering distance are removed from the memory.
  * </p>
- *
- * @implNote LOD (Level of Detail) might be implemented if necessary for
- *           performance.
+ * 
+ * <p>
+ * Implemantion note: LOD (Level of Detail) might be implemented if
+ * necessary for performance.
+ * </p>
  */
 public class ChunkManager {
     /** Maximum distance in chunks that are rendered */
