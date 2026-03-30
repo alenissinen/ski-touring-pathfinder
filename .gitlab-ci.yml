@@ -1,7 +1,16 @@
 image: maven:3.9.6-eclipse-temurin-21
 
 stages:
+  - test
   - pages
+
+test:
+  stage: test
+  script:
+    - mvn test
+  artifacts:
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
 
 pages:
   stage: pages
@@ -12,5 +21,3 @@ pages:
   artifacts:
     paths:
       - public
-  only:
-    - main
