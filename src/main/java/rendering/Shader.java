@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.FloatBuffer;
+import java.nio.charset.StandardCharsets;
 
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
@@ -138,12 +139,17 @@ public class Shader implements AutoCloseable {
      */
     private String loadSource(String shaderName) throws IOException {
         InputStream shaderStream = Shader.class.getResourceAsStream(shaderName);
-        try (
-                InputStreamReader reader = new InputStreamReader(shaderStream);
-                BufferedReader buffered = new BufferedReader(reader);) {
-            return buffered.toString();
-        } catch (IOException e) {
-            throw new IOException("[shader: " + shaderName + "] failed to read", e);
+
+        if (shaderStream == null)
+            throw new IOException("[shader: " + shaderName + "] not found");
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(shaderStream))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            return sb.toString();
         }
     }
 
