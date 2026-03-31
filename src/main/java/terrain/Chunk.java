@@ -11,10 +11,12 @@ import static org.lwjgl.opengl.GL15C.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15C.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15C.glBindBuffer;
 import static org.lwjgl.opengl.GL15C.glBufferData;
+import static org.lwjgl.opengl.GL15C.glDeleteBuffers;
 import static org.lwjgl.opengl.GL15C.glGenBuffers;
 import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30C.glBindVertexArray;
+import static org.lwjgl.opengl.GL30C.glDeleteVertexArrays;
 import static org.lwjgl.opengl.GL30C.glGenVertexArrays;
 
 import java.nio.FloatBuffer;
@@ -227,6 +229,8 @@ public class Chunk implements AutoCloseable {
      * }</pre>
      */
     public void dispose() {
+        glDeleteVertexArrays(this.vao);
+        glDeleteBuffers(new int[] { this.vbo, this.ebo });
     }
 
     /**
