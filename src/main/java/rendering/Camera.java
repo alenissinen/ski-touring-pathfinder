@@ -154,6 +154,13 @@ public class Camera {
     }
 
     /**
+     * @return Current camera front vector
+     */
+    public Vector3f getFront() {
+        return this.front;
+    }
+
+    /**
      * @return Current mouse interaction mode
      */
     public MouseMode getMouseMode() {
