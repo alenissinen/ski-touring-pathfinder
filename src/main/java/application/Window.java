@@ -1,6 +1,7 @@
 package application;
 
 import org.lwjgl.glfw.*;
+import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.*;
@@ -41,8 +42,9 @@ public class Window {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // Window is resizable
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, config.getOpenGlMajor()); // Set OpenGL major version
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, config.getOpenGlMinor()); // Set OpenGL minor version
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Force modern API and remove deprecated
-                                                                       // features
+        // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Force
+        // modern API and remove deprecated
+        // features
 
         // Create window (NULL is just 0L but used for clarity)
         window = glfwCreateWindow(config.getWidth(), config.getHeight(), config.getTitle(), NULL, NULL);
