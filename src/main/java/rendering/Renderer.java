@@ -32,6 +32,12 @@ public class Renderer {
     private final AStar aStar;
 
     /**
+     * Create static model matrix for now since the grid is already in world
+     * coordinates this is not needed for now.
+     */
+    private static final Matrix4f model = new Matrix4f().identity();
+
+    /**
      * Constructs a new {@code Renderer}.
      * 
      * @param camera       Camera providing view and projection matrices
@@ -42,6 +48,7 @@ public class Renderer {
         this.camera = camera;
         this.chunkManager = chunkManager;
         this.aStar = aStar;
+        this.init();
     }
 
     /**
@@ -49,6 +56,7 @@ public class Renderer {
      * is created and before first call to {@link #render(float)}!
      */
     public void init() {
+        this.shader = new Shader("/chunk.vert", "/chunk.frag");
     }
 
     /**
@@ -57,10 +65,20 @@ public class Renderer {
      * @param deltaTime Time in seconds since the last render
      */
     public void render(double deltaTime) {
+        // Bind active shader program
+        this.shader.bind();
+
+        // Calculate MVP
+        Matrix4f MVP = this.buildMVP(model);
+        this.shader.setMat4("MVP", MVP);
+
         // Clear framebuffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderTerrain();
         renderPath();
+
+        // Unbind shader program
+        this.shader.unbind();
     }
 
     /**
@@ -82,8 +100,10 @@ public class Renderer {
      * @return Combined MVP matrix ({@code projection * view * model})
      */
     private Matrix4f buildMVP(Matrix4f model) {
-        // TODO: remove placeholder
-        return new Matrix4f();
+        // Create new matrix because JOML modifies the original matrix
+        return new Matrix4f(this.camera.getProjectionMatrix())
+                .mul(this.camera.getViewMatrix())
+                .mul(model);
     }
 
     /**

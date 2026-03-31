@@ -2,10 +2,17 @@ package application;
 
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
+
+import exceptions.HeightMapParseException;
 import rendering.Renderer;
+import terrain.ChunkManager;
+import terrain.HeightMap;
+import rendering.Camera;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+
+import org.joml.Vector3f;
 
 /**
  * Main application class responsible for the program lifecycle. Manages
@@ -20,7 +27,7 @@ public class Application {
     private final Config config;
 
     /** Renderer object */
-    private final Renderer renderer;
+    private Renderer renderer;
 
     /**
      * Constructor to create new application
@@ -30,9 +37,6 @@ public class Application {
     public Application(Config config) {
         this.config = config;
         this.window = new Window(config);
-
-        // TODO: remove placeholder
-        this.renderer = new Renderer(null, null, null);
     }
 
     /**
@@ -40,7 +44,12 @@ public class Application {
      */
     public void run() {
         // Initialize GLFW and start render loop
-        init();
+        try {
+            init();
+        } catch (HeightMapParseException | IllegalStateException e) {
+            e.printStackTrace();
+        }
+
         loop();
 
         // Clean resources before shutting down
@@ -50,7 +59,7 @@ public class Application {
     /**
      * Setups necessary callbacks, initializes GLFW, and creates the window
      */
-    public void init() {
+    public void init() throws HeightMapParseException, IllegalStateException {
         // Create an error callback, prints error message in stderr
         GLFWErrorCallback.createPrint(System.err).set();
 
@@ -60,6 +69,17 @@ public class Application {
 
         // Create GLFW window
         this.window.create();
+
+        GL.createCapabilities();
+
+        // Create north and south height maps and merge them
+        HeightMap north = HeightMap.fromAsciiFile("/T5311B.asc");
+        HeightMap south = HeightMap.fromAsciiFile("/T5311A.asc");
+        HeightMap merged = HeightMap.merge(north, south);
+
+        Camera camera = new Camera(new Vector3f(), 68.0f, this.config.getWidth() / this.config.getHeight(), 2.0f);
+        ChunkManager chunkManager = new ChunkManager(merged, 8);
+        this.renderer = new Renderer(camera, chunkManager, null);
     }
 
     /**
@@ -72,6 +92,10 @@ public class Application {
 
         // Set background color to black
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+        // Set face culling and wireframe
+        glEnable(GL_CULL_FACE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         // Convert target fps to target frametime
         float targetFrameTime = 1.0f / config.getTargetFps();
