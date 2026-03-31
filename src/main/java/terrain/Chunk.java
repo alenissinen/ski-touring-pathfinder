@@ -2,6 +2,26 @@ package terrain;
 
 import application.Constants;
 
+import static org.lwjgl.opengl.GL11C.GL_FLOAT;
+import static org.lwjgl.opengl.GL11C.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11C.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL11C.glDrawElements;
+import static org.lwjgl.opengl.GL15C.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15C.GL_ELEMENT_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15C.GL_STATIC_DRAW;
+import static org.lwjgl.opengl.GL15C.glBindBuffer;
+import static org.lwjgl.opengl.GL15C.glBufferData;
+import static org.lwjgl.opengl.GL15C.glGenBuffers;
+import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
+import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
+import static org.lwjgl.opengl.GL30C.glBindVertexArray;
+import static org.lwjgl.opengl.GL30C.glGenVertexArrays;
+
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
+import org.lwjgl.BufferUtils;
+
 /**
  * Represents a 125x125 section of the merged {@link HeightMap}.
  * Manages its own OpenGL resources (VBO, VAO, EBO) and handles data sharing
@@ -86,6 +106,69 @@ public class Chunk implements AutoCloseable {
     }
 
     /**
+     * Generates vertex data for this chunk as a flat array.
+     * Each vertex is made from (x, y, z) coordinates where y is value from
+     * {@link HeightMap}.
+     * 
+     * @return Float array of vertex data
+     */
+    private float[] createVertexData() {
+        float[] vertexData = new float[Constants.CHUNK_SIZE * Constants.CHUNK_SIZE * 3];
+
+        for (int row = 0; row < Constants.CHUNK_SIZE; row++) {
+            for (int col = 0; col < Constants.CHUNK_SIZE; col++) {
+                // Convert grid coordinates to world coordinates
+                float x = (offsetX + col) * Constants.WORLD_SCALE;
+                float z = (offsetZ + row) * Constants.WORLD_SCALE;
+                float y = this.heightMap.getElevation(offsetX + col, offsetZ + row);
+
+                // Store coordinates in the array
+                int index = (row * Constants.CHUNK_SIZE + col) * 3;
+                vertexData[index] = x;
+                vertexData[index + 1] = y;
+                vertexData[index + 2] = z;
+            }
+        }
+
+        return vertexData;
+    }
+
+    /**
+     * Generates index data for this chunk as a flat int array.
+     * Each grid square is divided into two triangles (A,C,B) and (B,C,D).
+     *
+     * @return Int array of index data, size {@code (CHUNK_SIZE-1)² * 2 * 3}
+     */
+    private int[] createIndexData() {
+        int indexAmount = Constants.CHUNK_SIZE - 1;
+        int index = 0;
+
+        // (CHUNK_SIZE-1)^2 squares, 2 triangles per square, 3 indices per triangle
+        int[] indexData = new int[indexAmount * indexAmount * 2 * 3];
+
+        for (int row = 0; row < indexAmount; row++) {
+            for (int col = 0; col < indexAmount; col++) {
+                int a = row * Constants.CHUNK_SIZE + col;
+                int b = row * Constants.CHUNK_SIZE + col + 1;
+                int c = (row + 1) * Constants.CHUNK_SIZE + col;
+                int d = (row + 1) * Constants.CHUNK_SIZE + col + 1;
+
+                // First triangle
+                indexData[index++] = a;
+                indexData[index++] = c;
+                indexData[index++] = b;
+
+                // Second triangle
+                indexData[index++] = b;
+                indexData[index++] = c;
+                indexData[index++] = d;
+            }
+        }
+
+        return indexData;
+    }
+
+    /**
      * Generates mesh data from the heightmap and uploads it to the GPU.
      * Creates the VAO, VBO and EBO. Should be only called once!
      *
@@ -95,6 +178,27 @@ public class Chunk implements AutoCloseable {
      * </p>
      */
     public void upload() {
+        float[] vertexData = this.createVertexData();
+        int[] indexData = this.createIndexData();
+
+        this.vao = glGenVertexArrays();
+        glBindVertexArray(this.vao);
+
+        this.vbo = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, this.vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                (FloatBuffer) BufferUtils.createFloatBuffer(vertexData.length).put(vertexData).flip(), GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
+        glEnableVertexAttribArray(0);
+
+        this.ebo = glGenBuffers();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                (IntBuffer) BufferUtils.createIntBuffer(indexData.length).put(indexData).flip(), GL_STATIC_DRAW);
+
+        this.indexCount = indexData.length;
+        glBindVertexArray(0);
     }
 
     /**
@@ -102,6 +206,9 @@ public class Chunk implements AutoCloseable {
      * {@link #upload()} must be called before rendering!
      */
     public void render() {
+        glBindVertexArray(this.vao);
+        glDrawElements(GL_TRIANGLES, this.indexCount, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
     }
 
     /**

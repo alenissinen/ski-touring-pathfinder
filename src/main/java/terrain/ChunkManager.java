@@ -6,7 +6,10 @@ import rendering.Renderer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.joml.Vector3f;
 
 import application.Constants;
 
@@ -80,6 +83,89 @@ public class ChunkManager {
      * @param camera The active camera in use
      */
     public void update(Camera camera) {
+        // Camera position and chunk in which it currently is
+        Vector3f cameraPos = camera.getPosition();
+        int cameraChunkX = this.toChunkX(cameraPos.x);
+        int cameraChunkZ = this.toChunkZ(cameraPos.z);
+
+        // Calculate whether previously loaded chunks are in render distance and in
+        // front of camera
+        for (Map.Entry<Integer, Chunk> element : this.loadedChunks.entrySet()) {
+            Chunk chunk = element.getValue();
+
+            // Remove chunk if it is behind camera
+            if (this.isChunkBehindCamera(chunk.getChunkX(), chunk.getChunkZ(), cameraChunkX, cameraChunkZ,
+                    camera.getFront())) {
+                // Free chunk gpu resources and remove from loaded list
+                chunk.dispose();
+                this.loadedChunks.remove(element.getKey());
+
+                continue;
+            }
+
+            if (!this.isChunkInRenderDistance(chunk.getChunkX(), chunk.getChunkZ(), cameraChunkX, cameraChunkZ)) {
+                // Free chunk gpu resources and remove from loaded list
+                chunk.dispose();
+                this.loadedChunks.remove(element.getKey());
+            }
+        }
+
+        // Load new chunks within render distance
+        for (int x = cameraChunkX - this.renderDistance; x <= cameraChunkX + this.renderDistance; x++) {
+            for (int z = cameraChunkZ - this.renderDistance; z <= cameraChunkZ + this.renderDistance; z++) {
+                // Dont add chunk if it is behind camera
+                if (this.isChunkBehindCamera(x, z, cameraChunkX, cameraChunkZ, cameraPos))
+                    continue;
+
+                int packedKey = this.packKey(x, z);
+
+                // Dont add chunk if it already is in the map
+                if (this.loadedChunks.containsKey(packedKey))
+                    continue;
+
+                // Add new chunk to the loaded chunks map
+                this.loadedChunks.put(packedKey, new Chunk(heightMap, x, z));
+            }
+        }
+    }
+
+    /**
+     * Checks if a chunk is inside the render distance from the camera.
+     * 
+     * @param chunkX       Target chunk X coordinate
+     * @param chunkZ       Target chunk Z coordinate
+     * @param cameraChunkX Camera chunk X coordinate
+     * @param cameraChunkZ Camera chunk Z coordinate
+     * @return True if the chunk is inside the render distance, false if outside
+     */
+    private boolean isChunkInRenderDistance(int chunkX, int chunkZ, int cameraChunkX, int cameraChunkZ) {
+        // Calculate whether distance between chunks is greater than render distance
+        int chunkdx = cameraChunkX - chunkX;
+        int chunkdz = cameraChunkZ - chunkZ;
+
+        return Math.sqrt(chunkdx * chunkdx + chunkdz * chunkdz) <= this.renderDistance;
+    }
+
+    /**
+     * Checks if a chunk is behind the camera.
+     * 
+     * @param chunkX       Target chunk X coordinate
+     * @param chunkZ       Target chunk Z coordinate
+     * @param cameraChunkX Camera chunk X coordinate
+     * @param cameraChunkZ Camera chunk Z coordinate
+     * @param cameraFront  Camera front vector
+     * @return True if the chunk is behind the camera, false if not
+     */
+    private boolean isChunkBehindCamera(int chunkX, int chunkZ, int cameraChunkX, int cameraChunkZ,
+            Vector3f cameraFront) {
+        // Calculate dot product between camera front vector and
+        // current chunk - camera chunk vector
+        float dx = chunkX - cameraChunkX;
+        float dz = chunkZ - cameraChunkZ;
+
+        float dot = dx * cameraFront.x + dz * cameraFront.z;
+
+        return dot < 0;
     }
 
     /**
@@ -87,6 +173,9 @@ public class ChunkManager {
      * Must be called on application shutdown to free OpenGL resources!
      */
     public void disposeAll() {
+        for (Chunk chunk : loadedChunks.values()) {
+            chunk.dispose();
+        }
     }
 
     /**
