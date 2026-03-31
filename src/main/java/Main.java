@@ -16,9 +16,10 @@ public class Main {
                 .targetFps(60)
                 .major(4)
                 .minor(1) // macOS doesn't officially support 4.6
+                .renderDistance(12)
                 .build();
 
-        logger.info("Config created");
+        logger.info(config.toString());
 
         // Start application
         new Application(config).run();

@@ -6,17 +6,25 @@ package application;
  */
 public class Config {
     /** Window title */
-    private String title;
+    private String title = "Example";
+
     /** Window width */
-    private int width;
+    private int width = 1280;
+
     /** Window height */
-    private int height;
+    private int height = 720;
+
     /** Application target fps */
-    private int targetFps;
+    private int targetFps = 60;
+
     /** OpenGL major version (4 in 4.6) */
-    private int openGlMajor;
+    private int openGlMajor = 3;
+
     /** OpenGL minor version (6 in 4.6) */
-    private int openGlMinor;
+    private int openGlMinor = 3;
+
+    /** Render distanche in chunk units */
+    private int renderDistance = 8;
 
     /**
      * Private constructor, use {@link Builder} to create a configuration
@@ -67,6 +75,13 @@ public class Config {
     }
 
     /**
+     * @return Render distance
+     */
+    public int getRenderDistance() {
+        return renderDistance;
+    }
+
+    /**
      * Builder for constructing a {@link Config} instance
      *
      * <pre>{@code
@@ -84,6 +99,7 @@ public class Config {
         private int targetFps;
         private int openGlMajor;
         private int openGlMinor;
+        private int renderDistance;
 
         /**
          * Sets the window title
@@ -152,6 +168,17 @@ public class Config {
         }
 
         /**
+         * Sets the render distance
+         * 
+         * @param renderDistance Render distanche in chunk units
+         * @return Current {@link Builder} instance
+         */
+        public Builder renderDistance(int renderDistance) {
+            this.renderDistance = renderDistance;
+            return this;
+        }
+
+        /**
          * Builds and returns a {@link Config} instance
          * 
          * @return Configured {@link Config} object
@@ -164,8 +191,20 @@ public class Config {
             config.targetFps = this.targetFps;
             config.openGlMajor = this.openGlMajor;
             config.openGlMinor = this.openGlMinor;
+            config.renderDistance = this.renderDistance;
 
             return config;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Config {" +
+                "\n  title          = '" + title + '\'' +
+                "\n  resolution     = " + width + "x" + height +
+                "\n  targetFps      = " + targetFps +
+                "\n  openGlVersion  = " + openGlMajor + "." + openGlMinor +
+                "\n  renderDistance = " + renderDistance + " chunks" +
+                "\n}";
     }
 }
