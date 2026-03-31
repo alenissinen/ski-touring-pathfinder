@@ -116,5 +116,9 @@ public class Renderer {
      * Called by {@link Application#cleanUp()} on shutdown.
      */
     public void cleanUp() {
+        if (this.shader != null) {
+            this.shader.dispose();
+            logger.info("Renderer shader resources cleaned up");
+        }
     }
 }

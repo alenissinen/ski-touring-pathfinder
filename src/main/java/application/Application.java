@@ -91,7 +91,7 @@ public class Application {
         logger.info("Height maps created and merged");
 
         Camera camera = new Camera(new Vector3f(), 68.0f, this.config.getWidth() / this.config.getHeight(), 2.0f);
-        ChunkManager chunkManager = new ChunkManager(merged, 8);
+        ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
         this.renderer = new Renderer(camera, chunkManager, null);
 
         logger.info("Renderer instance instantiated");
@@ -143,5 +143,7 @@ public class Application {
         renderer.cleanUp();
         glfwDestroyWindow(window.getHandle());
         glfwTerminate();
+
+        logger.info("Application resources removed from RAM and VRAM");
     }
 }
