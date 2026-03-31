@@ -23,6 +23,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a 125x125 section of the merged {@link HeightMap}.
@@ -46,6 +48,8 @@ import org.lwjgl.BufferUtils;
  * </p>
  */
 public class Chunk implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(Chunk.class);
+
     /** Reference to the full heightmap */
     private final HeightMap heightMap;
 
@@ -84,6 +88,8 @@ public class Chunk implements AutoCloseable {
         this.chunkZ = chunkZ;
         this.offsetX = chunkX * Constants.CHUNK_SIZE;
         this.offsetZ = chunkZ * Constants.CHUNK_SIZE;
+
+        logger.info("Chunk ({}, {}) loaded", chunkX, chunkZ);
     }
 
     /**
@@ -132,6 +138,7 @@ public class Chunk implements AutoCloseable {
             }
         }
 
+        logger.info("Chunk ({}, {}) vertex data created", this.chunkX, this.chunkZ);
         return vertexData;
     }
 
@@ -167,6 +174,7 @@ public class Chunk implements AutoCloseable {
             }
         }
 
+        logger.info("Chunk ({}, {}) index data created", this.chunkX, this.chunkZ);
         return indexData;
     }
 
@@ -201,6 +209,8 @@ public class Chunk implements AutoCloseable {
 
         this.indexCount = indexData.length;
         glBindVertexArray(0);
+
+        logger.info("Chunk ({}, {}) mesh data uploaded to gpu", chunkX, chunkZ);
     }
 
     /**
@@ -228,9 +238,12 @@ public class Chunk implements AutoCloseable {
      * } // dispose() is called automatically after the try-block
      * }</pre>
      */
+
     public void dispose() {
         glDeleteVertexArrays(this.vao);
         glDeleteBuffers(new int[] { this.vbo, this.ebo });
+
+        logger.info("Chunk ({}, {}) disposed", chunkX, chunkZ);
     }
 
     /**

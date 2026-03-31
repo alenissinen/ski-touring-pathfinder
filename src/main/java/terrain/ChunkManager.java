@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.joml.Vector3f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import application.Constants;
 
@@ -38,6 +40,8 @@ import application.Constants;
  * </p>
  */
 public class ChunkManager {
+    private static final Logger logger = LoggerFactory.getLogger(ChunkManager.class);
+
     /** Maximum distance in chunks that are rendered */
     private final int renderDistance;
 
@@ -59,6 +63,8 @@ public class ChunkManager {
         this.heightMap = heightMap;
         this.renderDistance = renderDistance;
         this.loadedChunks = new HashMap<Integer, Chunk>();
+
+        logger.info("Chunk manager instantiated: renderDistance {}", renderDistance);
     }
 
     /**
@@ -176,6 +182,8 @@ public class ChunkManager {
         for (Chunk chunk : loadedChunks.values()) {
             chunk.dispose();
         }
+
+        logger.info("All loaded chunks disposed");
     }
 
     /**

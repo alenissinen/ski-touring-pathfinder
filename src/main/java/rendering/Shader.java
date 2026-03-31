@@ -33,6 +33,8 @@ import java.nio.charset.StandardCharsets;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for loading, compiling, and managing GLSL shader programs.
@@ -48,6 +50,8 @@ import org.lwjgl.BufferUtils;
  * </p>
  */
 public class Shader implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(Shader.class);
+
     /** OpenGL handle for the compiled and linked shader program */
     private int programId;
 
@@ -78,19 +82,26 @@ public class Shader implements AutoCloseable {
         try {
             String vertex = this.loadSource(vertexShader);
             this.compileShader(vertex, GL_VERTEX_SHADER, vertexShader);
+
+            logger.info("Vertex shader ({}) compiled", vertexShader);
         } catch (IOException e) {
+            logger.error("Failed to compile vertex shader");
             throw new ShaderException("Failed to read vertex shader", vertexShader);
         }
 
         try {
             String fragment = this.loadSource(fragmentShader);
             this.compileShader(fragment, GL_VERTEX_SHADER, fragmentShader);
+
+            logger.info("Fragment shader ({}) compiled", fragmentShader);
         } catch (IOException e) {
+            logger.error("Failed to compile fragment shader");
             throw new ShaderException("Failed to read fragment shader", fragmentShader);
         }
 
         // Link the program
         this.linkProgram();
+        logger.info("Shader program ({}) linked", this.programId);
     }
 
     /** Binds the shader program as the active OpenGL shader */
@@ -140,8 +151,10 @@ public class Shader implements AutoCloseable {
     private String loadSource(String shaderName) throws IOException {
         InputStream shaderStream = Shader.class.getResourceAsStream(shaderName);
 
-        if (shaderStream == null)
+        if (shaderStream == null) {
+            logger.error("Shader {} not found", shaderName);
             throw new IOException("[shader: " + shaderName + "] not found");
+        }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(shaderStream))) {
             StringBuilder sb = new StringBuilder();
@@ -149,6 +162,8 @@ public class Shader implements AutoCloseable {
             while ((line = reader.readLine()) != null) {
                 sb.append(line).append("\n");
             }
+
+            logger.info("Shader {} loaded from source", shaderName);
             return sb.toString();
         }
     }
@@ -204,6 +219,9 @@ public class Shader implements AutoCloseable {
         glDeleteProgram(this.programId);
         glDeleteShader(this.vertexShaderId);
         glDeleteShader(this.fragmentShaderId);
+
+        logger.info("Shaders ({}, {}) and program ({}) disposed", this.vertexShaderId, this.fragmentShaderId,
+                this.programId);
     }
 
     /**

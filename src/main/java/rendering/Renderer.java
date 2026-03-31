@@ -7,6 +7,8 @@ import terrain.ChunkManager;
 import static org.lwjgl.opengl.GL11.*;
 
 import org.joml.Matrix4f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main renderer responsible for drawing each frame.
@@ -19,6 +21,8 @@ import org.joml.Matrix4f;
  * </p>
  */
 public class Renderer {
+    private static final Logger logger = LoggerFactory.getLogger(Renderer.class);
+
     /** Shader program for rendering terrain and path */
     private Shader shader;
 
@@ -57,6 +61,7 @@ public class Renderer {
      */
     public void init() {
         this.shader = new Shader("/chunk.vert", "/chunk.frag");
+        logger.info("Renderer initiated and shader program created");
     }
 
     /**

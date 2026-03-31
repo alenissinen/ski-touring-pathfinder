@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import exceptions.HeightMapParseException;
 
 /**
@@ -12,6 +15,8 @@ import exceptions.HeightMapParseException;
  * to access height values by coordinate
  */
 public class HeightMap {
+    private static final Logger logger = LoggerFactory.getLogger(HeightMap.class);
+
     /** Elevation values in meters, indexed as [row][col] */
     private float[][] data;
 
@@ -51,6 +56,9 @@ public class HeightMap {
         this.xLL = xLL;
         this.yLL = yLL;
         this.cellSize = cellSize;
+
+        logger.info("Height map instantiated: width {}, height {}\n\txLL {}, yLL {}, cellSize {}", width, height, xLL,
+                yLL, cellSize);
     }
 
     /**
@@ -63,6 +71,7 @@ public class HeightMap {
         // Read file from resources folder as a stream of bytes
         InputStream in = HeightMap.class.getResourceAsStream(filePath);
         if (in == null) {
+            logger.error("File not found: {}", filePath);
             throw new HeightMapParseException("File not found", filePath);
         }
 
@@ -95,8 +104,10 @@ public class HeightMap {
                 }
             }
 
+            logger.info("Height map read from ascii file: {}", filePath);
             return new HeightMap(data, width, height, xLL, yLL, cellSize);
         } catch (IOException e) {
+            logger.error("Failed to read height map ascii file: {}", filePath);
             throw new HeightMapParseException("Failed to read file", e, filePath);
         }
     }
@@ -156,6 +167,7 @@ public class HeightMap {
         double rise_run = Math.sqrt(dzdx * dzdx + dzdy * dzdy);
         double slope_degrees = Math.toDegrees(Math.atan(rise_run));
 
+        logger.info("Slope angle at ({}, {}) calculated: {}", x, z, slope_degrees);
         return slope_degrees;
     }
 
@@ -167,8 +179,11 @@ public class HeightMap {
             throws HeightMapParseException {
         try {
             String parsedLine = line.trim().split("\\s+")[1];
+
+            logger.info("Header parsed: line {}, value {}", line, parsedLine);
             return parser.apply(parsedLine);
         } catch (Exception e) {
+            logger.error("Invalid ascii file header: {}", line);
             throw new HeightMapParseException("Invalid header" + line, e, filePath);
         }
     }
@@ -177,11 +192,13 @@ public class HeightMap {
     public static HeightMap merge(HeightMap north, HeightMap south) throws IllegalArgumentException {
         // Height maps cant be of different width
         if (north.width != south.width) {
+            logger.error("Grid column amount mismatch");
             throw new IllegalArgumentException("Grid column amount mismatch");
         }
 
         // Cell size must be the same for proper visualization
         if (north.cellSize != south.cellSize) {
+            logger.error("Grid cell size mismatch");
             throw new IllegalArgumentException("Grid cell size mismatch");
         }
 
@@ -203,6 +220,7 @@ public class HeightMap {
             System.arraycopy(south.data[n], 0, data[north.height + n], 0, south.width);
         }
 
+        logger.info("Height maps merged");
         return new HeightMap(data, width, height, xLL, yLL, cellSize);
     }
 }

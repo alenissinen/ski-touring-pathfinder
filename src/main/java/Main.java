@@ -1,7 +1,12 @@
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import application.Application;
 import application.Config;
 
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) {
         // Create application config
         Config config = new Config.Builder()
@@ -12,6 +17,8 @@ public class Main {
                 .major(4)
                 .minor(1) // macOS doesn't officially support 4.6
                 .build();
+
+        logger.info("Config created");
 
         // Start application
         new Application(config).run();

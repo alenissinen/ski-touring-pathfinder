@@ -2,6 +2,8 @@ package application;
 
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import exceptions.HeightMapParseException;
 import rendering.Renderer;
@@ -20,6 +22,11 @@ import org.joml.Vector3f;
  * main loop and cleanup.
  */
 public class Application {
+    private static final Logger logger = LoggerFactory.getLogger(Application.class);
+
+    /** Store start time to calculate how long intialization took */
+    private static final long STARTUP_TIME = System.currentTimeMillis();
+
     /** Window object */
     private final Window window;
 
@@ -64,8 +71,12 @@ public class Application {
         GLFWErrorCallback.createPrint(System.err).set();
 
         // Initialize GLFW
-        if (!glfwInit())
+        if (!glfwInit()) {
+            logger.error("Failed to initialize GLFW");
             throw new IllegalStateException("Unable to initialize GLFW");
+        }
+
+        logger.info("GLFW initialized");
 
         // Create GLFW window
         this.window.create();
@@ -77,15 +88,21 @@ public class Application {
         HeightMap south = HeightMap.fromAsciiFile("/T5311A.asc");
         HeightMap merged = HeightMap.merge(north, south);
 
+        logger.info("Height maps created and merged");
+
         Camera camera = new Camera(new Vector3f(), 68.0f, this.config.getWidth() / this.config.getHeight(), 2.0f);
         ChunkManager chunkManager = new ChunkManager(merged, 8);
         this.renderer = new Renderer(camera, chunkManager, null);
+
+        logger.info("Renderer instance instantiated");
     }
 
     /**
      * Main loop of the application
      */
     public void loop() {
+        logger.info("Application loop started, initialization took {}ms", System.currentTimeMillis() - STARTUP_TIME);
+
         // LWJGl detects the current context and creates GLCapabilities instance
         // and makes the OpenGL bindings available
         GL.createCapabilities();

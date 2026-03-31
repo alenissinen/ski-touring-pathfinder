@@ -3,6 +3,8 @@ package rendering;
 import application.MouseMode;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
@@ -20,6 +22,8 @@ import java.util.Set;
  * </ul>
  */
 public class Camera {
+    private static final Logger logger = LoggerFactory.getLogger(Camera.class);
+
     /** Current position of the camera in world space */
     private final Vector3f position;
 
@@ -75,6 +79,8 @@ public class Camera {
         this.viewMatrix = new Matrix4f();
         this.projectionMatrix = new Matrix4f();
         this.mouseMode = MouseMode.FLIGHT;
+
+        logger.info("Camera instantiated at {}", position.toString());
 
         // Calculate matrices
         updateViewMatrix();
