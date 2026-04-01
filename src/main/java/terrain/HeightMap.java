@@ -1,10 +1,5 @@
 package terrain;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,48 +63,8 @@ public class HeightMap {
      * @return HeightMap object of a height map
      */
     public static HeightMap fromAsciiFile(String filePath) throws HeightMapParseException {
-        // Read file from resources folder as a stream of bytes
-        InputStream in = HeightMap.class.getResourceAsStream(filePath);
-        if (in == null) {
-            logger.error("File not found: {}", filePath);
-            throw new HeightMapParseException("File not found", filePath);
-        }
-
-        // Turn input stream into a buffered reader
-        try (
-                InputStreamReader reader = new InputStreamReader(in);
-                BufferedReader buffered = new BufferedReader(reader);) {
-            // Parse header values
-            int width = parseHeader(buffered.readLine(), Integer::parseInt, filePath);
-            int height = parseHeader(buffered.readLine(), Integer::parseInt, filePath);
-            double xLL = parseHeader(buffered.readLine(), Double::parseDouble, filePath);
-            double yLL = parseHeader(buffered.readLine(), Double::parseDouble, filePath);
-            double cellSize = parseHeader(buffered.readLine(), Double::parseDouble, filePath);
-            buffered.readLine(); // Skip NODATA value
-
-            float[][] data = new float[height][width];
-
-            // Loop through each data row in the ascii file
-            for (int n = 0; n < height; n++) {
-                String line = buffered.readLine();
-                if (line == null)
-                    break;
-
-                // Split row by spacebar (\\s+) and read into an array
-                String[] values = line.trim().split("\\s+");
-
-                // Parse each value in the row and add to the data array
-                for (int m = 0; m < width; m++) {
-                    data[n][m] = Float.parseFloat(values[m]);
-                }
-            }
-
-            logger.info("Height map read from ascii file: {}", filePath);
-            return new HeightMap(data, width, height, xLL, yLL, cellSize);
-        } catch (IOException e) {
-            logger.error("Failed to read height map ascii file: {}", filePath);
-            throw new HeightMapParseException("Failed to read file", e, filePath);
-        }
+        HeightMapParser parser = new HeightMapParser(filePath);
+        return parser.parse();
     }
 
     /**
@@ -169,23 +124,6 @@ public class HeightMap {
 
         logger.info("Slope angle at ({}, {}) calculated: {}", x, z, slope_degrees);
         return slope_degrees;
-    }
-
-    /**
-     * Parses a single line from ASCII height map file and returns the header value
-     * as type T
-     */
-    private static <T> T parseHeader(String line, java.util.function.Function<String, T> parser, String filePath)
-            throws HeightMapParseException {
-        try {
-            String parsedLine = line.trim().split("\\s+")[1];
-
-            logger.info("Header parsed: line {}, value {}", line, parsedLine);
-            return parser.apply(parsedLine);
-        } catch (Exception e) {
-            logger.error("Invalid ascii file header: {}", line);
-            throw new HeightMapParseException("Invalid header" + line, e, filePath);
-        }
     }
 
     /** Merges two heightmaps which share the same xllcorner value */
