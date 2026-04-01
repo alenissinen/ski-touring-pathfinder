@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import exceptions.HeightMapParseException;
+import input.InputHandler;
 import rendering.Renderer;
 import terrain.ChunkManager;
 import terrain.HeightMap;
@@ -35,6 +36,9 @@ public class Application {
 
     /** Renderer object */
     private Renderer renderer;
+
+    /** Input handler */
+    private InputHandler inputHandler;
 
     /**
      * Constructor to create new application
@@ -90,11 +94,13 @@ public class Application {
 
         logger.info("Height maps created and merged");
 
-        Camera camera = new Camera(new Vector3f(), 68.0f, this.config.getWidth() / this.config.getHeight(), 2.0f);
+        Camera camera = new Camera(new Vector3f(), 68.0f, (float) this.config.getWidth() / this.config.getHeight(),
+                2.0f);
         ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
-        this.renderer = new Renderer(camera, chunkManager, null);
+        this.renderer = new Renderer(camera, chunkManager, null, this.window);
+        this.inputHandler = new InputHandler(this.window.getHandle(), camera, merged, null);
 
-        logger.info("Renderer instance instantiated");
+        logger.info("Renderer and InputHandler instances instantiated");
     }
 
     /**
@@ -140,9 +146,8 @@ public class Application {
      * Disposes OpenGL resources, destroys the GLFW window and terminates GLFW.
      */
     public void cleanUp() {
-        renderer.cleanUp();
-        glfwDestroyWindow(window.getHandle());
-        glfwTerminate();
+        this.renderer.cleanUp();
+        this.window.cleanUp();
 
         logger.info("Application resources removed from RAM and VRAM");
     }

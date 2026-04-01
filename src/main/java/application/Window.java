@@ -1,7 +1,6 @@
 package application;
 
 import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,5 +80,14 @@ public class Window {
                 ((monitorRes.height() - config.getHeight()) / 2));
 
         logger.info("Window centered");
+    }
+
+    /**
+     * Clean GLFW resources
+     */
+    public void cleanUp() {
+        glfwDestroyWindow(this.window);
+        glfwTerminate();
+        logger.info("GLFW terminated");
     }
 }
