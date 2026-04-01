@@ -94,7 +94,7 @@ public class HeightMapParser {
      * 
      * @param line    Line to parse
      * @param storage Array to store the parsed value in
-     * @param witdh   Row width
+     * @param width   Row width
      */
     private void parseLine(String line, float[] storage, int width) {
         StringTokenizer st = new StringTokenizer(line);
