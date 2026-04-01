@@ -2,3 +2,4 @@ target/
 .idea/
 docs/
 .vscode/
+dependency-reduced-pom.xml
