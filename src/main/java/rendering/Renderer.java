@@ -1,6 +1,8 @@
 package rendering;
 
 import application.Application;
+import application.MouseMode;
+import application.Window;
 import pathfinding.AStar;
 import terrain.ChunkManager;
 
@@ -35,6 +37,9 @@ public class Renderer {
     /** A* instance for pathfinding */
     private final AStar aStar;
 
+    /** Window instance */
+    private final Window window;
+
     /**
      * Create static model matrix for now since the grid is already in world
      * coordinates this is not needed for now.
@@ -48,10 +53,11 @@ public class Renderer {
      * @param chunkManager Chunk manager providing visible terrain chunks
      * @param aStar        A* instance for current path
      */
-    public Renderer(Camera camera, ChunkManager chunkManager, AStar aStar) {
+    public Renderer(Camera camera, ChunkManager chunkManager, AStar aStar, Window window) {
         this.camera = camera;
         this.chunkManager = chunkManager;
         this.aStar = aStar;
+        this.window = window;
         this.init();
     }
 
@@ -61,6 +67,7 @@ public class Renderer {
      */
     public void init() {
         this.shader = new Shader("/chunk.vert", "/chunk.frag");
+        this.camera.setMouseMode(MouseMode.FLIGHT, this.window.getHandle());
         logger.info("Renderer initiated and shader program created");
     }
 

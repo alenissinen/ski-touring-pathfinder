@@ -6,6 +6,8 @@ import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.lwjgl.glfw.GLFW.*;
+
 import java.util.Set;
 
 /**
@@ -28,9 +30,9 @@ public class Camera {
     private final Vector3f position;
 
     /** Direction the camera is looking at */
-    private final Vector3f front;
+    private Vector3f front;
 
-    /** Up vector of the camera, usually {@code (0, 1, 0)} */
+    /** Up vector */
     private final Vector3f up;
 
     /** Horizontal rotation angle in degrees */
@@ -49,13 +51,13 @@ public class Camera {
     private float aspectRatio;
 
     /** View matrix calculated from position and orientation */
-    private final Matrix4f viewMatrix;
+    private Matrix4f viewMatrix;
 
     /** Projection matrix calculated from fov and aspect ratio */
-    private final Matrix4f projectionMatrix;
+    private Matrix4f projectionMatrix;
 
     /** Current mouse interaction mode */
-    private MouseMode mouseMode = MouseMode.FLIGHT;
+    private MouseMode mouseMode;
 
     /**
      * Constructs a new {@code Camera} at the given positon.
@@ -72,18 +74,23 @@ public class Camera {
         this.moveSpeed = moveSpeed;
 
         // Initialize other variables
-        this.front = new Vector3f(0.0f, 0.0f, 1.0f); // Left handed coordinate system
+        this.front = new Vector3f(0.0f, 0.0f, 1.0f);
         this.up = new Vector3f(0.0f, 1.0f, 0.0f);
-        this.yaw = 90.0f; // Left handed coordinate system
+        this.yaw = 90.0f;
         this.pitch = 0.0f;
         this.viewMatrix = new Matrix4f();
         this.projectionMatrix = new Matrix4f();
         this.mouseMode = MouseMode.FLIGHT;
 
-        logger.info("Camera instantiated at {}", position.toString());
+        // Calculate actual front vector based on initial pitch and yaw values
+        this.updateFrontVector();
 
         // Calculate matrices
-        updateViewMatrix();
+        this.updateViewMatrix();
+        this.updateProjectionMatrix();
+
+        logger.info("Initial view matrix: {}", this.viewMatrix.toString());
+        logger.info("Camera created at {}", position.toString());
     }
 
     /**
@@ -94,6 +101,9 @@ public class Camera {
      * @param pressedKeys Set of currently pressed keys
      */
     public void update(float deltaTime, Set<Integer> pressedKeys) {
+        // Only update if camera has moved
+        if (!pressedKeys.isEmpty())
+            this.updateViewMatrix();
     }
 
     /**
@@ -105,6 +115,18 @@ public class Camera {
      * @param deltaY Mouse movement in the Y-axis
      */
     public void rotate(float deltaX, float deltaY) {
+        if (this.mouseMode != MouseMode.FLIGHT)
+            return;
+
+        // TODO: add mouse sensitivity
+        this.yaw += deltaX * 0.5;
+        this.pitch -= deltaY * 0.5;
+
+        // Limit pitch to [-89, 89] degrees or very bad things happen!
+        this.pitch = Math.max(-89.0f, Math.min(89.0f, this.pitch));
+
+        updateFrontVector();
+        updateViewMatrix();
     }
 
     /**
@@ -114,6 +136,8 @@ public class Camera {
      * @param height New viewport height
      */
     public void onResize(int width, int height) {
+        this.aspectRatio = (float) width / height;
+        this.updateProjectionMatrix();
     }
 
     /**
@@ -129,6 +153,58 @@ public class Camera {
      * @param windowHandle GLFW window handle
      */
     public void setMouseMode(MouseMode mouseMode, long windowHandle) {
+        if (mouseMode == null) {
+            logger.error("Failed to set mouse mode");
+            return;
+        }
+
+        this.mouseMode = mouseMode;
+        switch (mouseMode) {
+            case MouseMode.FLIGHT:
+                glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                break;
+            case MouseMode.SELECTION:
+                glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Calculates the front vector from yaw and pitch angles. The rotation matrix
+     * can be simplifed a lot since roll is not implemented.<br>
+     * 
+     * a=yaw, b=pitch, y=roll<br>
+     * x = cos(a)*sin(b)*cos(y) + sin(a)*sin(y)<br>
+     * y = sin(a)*sin(b)*cos(y) - cos(a)*sin(y)<br>
+     * z = cos(b)*cos(y)<br>
+     * <br>
+     * 
+     * Because we dont support roll, y is always 0 thus cos(y)=1, sin(y)=0<br>
+     * x = cos(a)*sin(b)*1 + sin(a)*0 = cos(a)*sin(b)<br>
+     * y = sin(a)*sin(b)*1 - cos(a)*0 = sin(a)*sin(b)<br>
+     * z = cos(b)*1 = cos(b)<br>
+     * <br>
+     * 
+     * These calculations use z as the up vector but OpenGL uses y. Whene we use
+     * elevation angle instead of zenith we have to apply -90 degree offset.<br>
+     * 
+     * sin(b)=cos(90-b)<br>
+     * x = cos(a)*cos(b)<br>
+     * y = sin(b)<br>
+     * z = sin(a)*cos(b)<br>
+     * 
+     * @see <a href=
+     *      "https://en.wikipedia.org/wiki/Rotation_matrix#General_rotations">Wikipedia-
+     *      Rotation matrix</a>
+     */
+    private void updateFrontVector() {
+        float x = (float) (Math.cos(Math.toRadians(this.yaw)) * Math.cos(Math.toRadians(this.pitch)));
+        float y = (float) Math.sin(Math.toRadians(this.pitch));
+        float z = (float) (Math.sin(Math.toRadians(this.yaw)) * Math.cos(Math.toRadians(this.pitch)));
+
+        this.front = new Vector3f(x, y, z).normalize();
     }
 
     /**
@@ -136,6 +212,20 @@ public class Camera {
      * Called when camera moves or rotates.
      */
     private void updateViewMatrix() {
+        this.viewMatrix = new Matrix4f().lookAt(this.position, new Vector3f(this.position).add(this.front),
+                this.up);
+    }
+
+    /**
+     * Calculates projection matrix which turns view space to clip space (the name
+     * is quite self explanatory: it adds perspective).
+     */
+    private void updateProjectionMatrix() {
+        this.projectionMatrix = new Matrix4f().perspective(
+                (float) Math.toRadians(this.fov),
+                this.aspectRatio,
+                0.1f,
+                1000f);
     }
 
     /**
