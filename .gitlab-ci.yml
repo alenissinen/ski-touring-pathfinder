@@ -15,7 +15,7 @@ test:
 pages:
   stage: pages
   script:
-    - mvn clean package javadoc:javadoc
+    - mvn clean package javadoc:javadoc -Dshow=private
     - mkdir public
     - cp -r docs/apidocs/* public/
   artifacts:
