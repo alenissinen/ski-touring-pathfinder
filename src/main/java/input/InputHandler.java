@@ -1,7 +1,16 @@
 package input;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
+import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
+
 import java.util.HashSet;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import application.MouseMode;
 import pathfinding.AStar;
@@ -38,6 +47,8 @@ import terrain.HeightMap;
  * </p>
  */
 public class InputHandler {
+    private static final Logger logger = LoggerFactory.getLogger(InputHandler.class);
+
     /** GLFW window handle */
     private final long windowHandle;
 
@@ -84,10 +95,27 @@ public class InputHandler {
 
         // Initialize other variables
         this.pressedKeys = new HashSet<Integer>();
+
+        // Register callbacks
+        this.registerCallbacks();
     }
 
     /** Registers GLFW callbacks for input handling */
     private void registerCallbacks() {
+        // ESC closes the window
+        glfwSetKeyCallback(this.windowHandle, (_window, key, _scancode, action, _mods) -> {
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+                glfwSetWindowShouldClose(this.windowHandle, true);
+            }
+        });
+
+        logger.info("GLFW key callback set");
+
+        glfwSetWindowSizeCallback(windowHandle, (_window, newWidth, newHeight) -> {
+            this.onWindowResize(newWidth, newHeight);
+        });
+
+        logger.info("GLFW window size callback set");
     }
 
     /**
@@ -117,6 +145,16 @@ public class InputHandler {
      * @param action GLFW action code ({@code GLFW_PRESS}, {@code GLFW_RELEASE})
      */
     private void onMouseClick(int button, int action) {
+    }
+
+    /**
+     * Handles window resizing to calculate new projection matrix
+     * 
+     * @param newWidth  New window width
+     * @param newHeight New window height
+     */
+    private void onWindowResize(int newWidth, int newHeight) {
+        this.camera.onResize(newWidth, newHeight);
     }
 
     /**
