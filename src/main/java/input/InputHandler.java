@@ -2,13 +2,18 @@ package input;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
+import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
+import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
 
+import java.nio.DoubleBuffer;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +82,7 @@ public class InputHandler {
     private boolean startSelected = false;
 
     /** Last mouse cursor position for calculating movement deltas */
-    private double lastMouseX, lastMouseY;
+    private double lastMouseX = -1, lastMouseY = -1;
 
     /**
      * Counstructs a new {@code InputHandler} and registers GLFW callbacks.
@@ -116,6 +121,12 @@ public class InputHandler {
         });
 
         logger.info("GLFW window size callback set");
+
+        glfwSetCursorPosCallback(windowHandle, (_window, xpos, ypos) -> {
+            this.onMouseMove(xpos, ypos);
+        });
+
+        logger.info("GLFW cursor position callback set");
     }
 
     /**
@@ -135,6 +146,11 @@ public class InputHandler {
      * @param mouseY Current mouse Y position
      */
     private void onMouseMove(double mouseX, double mouseY) {
+        this.camera.rotate(this.lastMouseX - mouseX, this.lastMouseY - mouseY);
+
+        // Set last mouse position variables to current values
+        this.lastMouseX = (int) mouseX;
+        this.lastMouseY = (int) mouseY;
     }
 
     /**

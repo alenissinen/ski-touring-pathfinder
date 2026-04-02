@@ -114,13 +114,16 @@ public class Camera {
      * @param deltaX Mouse movement in the X-axis
      * @param deltaY Mouse movement in the Y-axis
      */
-    public void rotate(float deltaX, float deltaY) {
+    public void rotate(double deltaX, double deltaY) {
         if (this.mouseMode != MouseMode.FLIGHT)
             return;
 
         // TODO: add mouse sensitivity
-        this.yaw += deltaX * 0.5;
-        this.pitch -= deltaY * 0.5;
+        this.yaw = (this.yaw + (float) deltaX * 0.5f) % 360.0f;
+        if (this.yaw < 0)
+            this.yaw += 360.0f;
+
+        this.pitch -= (float) deltaY * 0.5f;
 
         // Limit pitch to [-89, 89] degrees or very bad things happen!
         this.pitch = Math.max(-89.0f, Math.min(89.0f, this.pitch));
