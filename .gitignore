@@ -3,3 +3,5 @@ target/
 docs/
 .vscode/
 dependency-reduced-pom.xml
+.classpath
+.project
