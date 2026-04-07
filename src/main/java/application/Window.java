@@ -60,8 +60,10 @@ public class Window {
         // Make the window current OpenGL context
         glfwMakeContextCurrent(window);
 
-        // Enable raw mouse position support
-        glfwSetInputMode(this.window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+        // Enable raw mouse position support if it is supported
+        if (GLFW.glfwRawMouseMotionSupported()) {
+            glfwSetInputMode(this.window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+        }
 
         // Make the window visible
         glfwShowWindow(window);

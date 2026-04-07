@@ -184,9 +184,14 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.4.1</version>
                 <configuration>
-                    <mainClass>Main</mainClass>
+                <executable>java</executable>
+                    <arguments>
+                        <argument>-XstartOnFirstThread</argument>
+                        <argument>-cp</argument>
+                        <classpath/>
+                        <argument>Main</argument>
+                    </arguments>
                 </configuration>
             </plugin>
             <plugin>
