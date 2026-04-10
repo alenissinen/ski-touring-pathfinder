@@ -1,9 +1,8 @@
 package rendering;
 
-import application.Application;
-import application.MouseMode;
 import application.Window;
 import pathfinding.AStar;
+import terrain.Chunk;
 import terrain.ChunkManager;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -67,18 +66,19 @@ public class Renderer {
      */
     public void init() {
         this.shader = new Shader("/chunk.vert", "/chunk.frag");
-        this.camera.setMouseMode(MouseMode.FLIGHT, this.window.getHandle());
+        this.camera.setMouseMode(this.window.getHandle());
         logger.info("Renderer initiated and shader program created");
     }
 
     /**
      * Renders a single frame, called once per iteration of the application loop.
-     * 
-     * @param deltaTime Time in seconds since the last render
      */
-    public void render(double deltaTime) {
+    public void render() {
         // Bind active shader program
         this.shader.bind();
+
+        // Upload chunks to GPU
+        this.chunkManager.update(this.camera);
 
         // Calculate MVP
         Matrix4f MVP = this.buildMVP(model);
@@ -97,6 +97,9 @@ public class Renderer {
      * Renders all visible terrain chunks provided by {@link ChunkManager}.
      */
     private void renderTerrain() {
+        for (Chunk chunk : this.chunkManager.getLoadedChunks()) {
+            chunk.render();
+        }
     }
 
     /**
@@ -127,5 +130,12 @@ public class Renderer {
             this.shader.dispose();
             logger.info("Renderer shader resources cleaned up");
         }
+    }
+
+    /**
+     * @return Camera used for view/projection and movement
+     */
+    public Camera getCamera() {
+        return this.camera;
     }
 }

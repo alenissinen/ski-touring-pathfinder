@@ -1,5 +1,6 @@
 package rendering;
 
+import application.Constants;
 import application.MouseMode;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -59,6 +60,9 @@ public class Camera {
     /** Current mouse interaction mode */
     private MouseMode mouseMode;
 
+    /** Reused for movement math to avoid per-frame allocations */
+    private final Vector3f scratch = new Vector3f();
+
     /**
      * Constructs a new {@code Camera} at the given positon.
      *
@@ -95,15 +99,68 @@ public class Camera {
 
     /**
      * Updates camera position based on keyboard input and elapsed time.
-     * Must be called once per rendered frame!
      *
-     * @param deltaTime   Time in seconds since last render
-     * @param pressedKeys Set of currently pressed keys
+     * @param pressedKeys  Set of currently pressed keys
+     * @param deltaSeconds Time since last update in seconds
      */
-    public void update(float deltaTime, Set<Integer> pressedKeys) {
-        // Only update if camera has moved
-        if (!pressedKeys.isEmpty())
-            this.updateViewMatrix();
+    public void update(Set<Integer> pressedKeys, float deltaTime) {
+        if (pressedKeys.isEmpty())
+            return;
+
+        float step = this.moveSpeed * deltaTime;
+
+        boolean forward = pressedKeys.contains(GLFW_KEY_W) || pressedKeys.contains(GLFW_KEY_L);
+        boolean back = pressedKeys.contains(GLFW_KEY_S) || pressedKeys.contains(GLFW_KEY_J);
+        boolean left = pressedKeys.contains(GLFW_KEY_A) || pressedKeys.contains(GLFW_KEY_O);
+        boolean right = pressedKeys.contains(GLFW_KEY_D) || pressedKeys.contains(GLFW_KEY_U);
+        boolean up = pressedKeys.contains(GLFW_KEY_Q) || pressedKeys.contains(GLFW_KEY_SEMICOLON);
+        boolean down = pressedKeys.contains(GLFW_KEY_E) || pressedKeys.contains(GLFW_KEY_P);
+
+        if (!forward && !back && !left && !right && !up && !down)
+            return;
+
+        // Strafe axis: perpendicular to look direction in the horizontal plane
+        this.scratch.set(this.front).cross(this.up).normalize();
+
+        if (this.scratch.lengthSquared() < 1e-6f)
+            this.scratch.set(1.0f, 0.0f, 0.0f);
+
+        float mx = 0.0f;
+        float my = 0.0f;
+        float mz = 0.0f;
+
+        if (forward) {
+            mx += this.front.x * step;
+            my += this.front.y * step;
+            mz += this.front.z * step;
+        }
+
+        if (back) {
+            mx -= this.front.x * step;
+            my -= this.front.y * step;
+            mz -= this.front.z * step;
+        }
+
+        if (right) {
+            mx -= this.scratch.x * step;
+            my -= this.scratch.y * step;
+            mz -= this.scratch.z * step;
+        }
+
+        if (left) {
+            mx += this.scratch.x * step;
+            my += this.scratch.y * step;
+            mz += this.scratch.z * step;
+        }
+
+        if (up)
+            my += step;
+
+        if (down)
+            my -= step;
+
+        this.position.add(mx, my, mz);
+        this.updateViewMatrix();
     }
 
     /**
@@ -123,7 +180,7 @@ public class Camera {
         if (this.yaw < 0)
             this.yaw += 360.0f;
 
-        this.pitch -= (float) deltaY * 0.5f;
+        this.pitch += (float) deltaY * 0.5f;
 
         // Limit pitch to [-89, 89] degrees or very bad things happen!
         this.pitch = Math.max(-89.0f, Math.min(89.0f, this.pitch));
@@ -144,7 +201,8 @@ public class Camera {
     }
 
     /**
-     * Switches mouse interaction mode and updates GLFW cursor.
+     * Switches mouse interaction mode and updates GLFW cursor. Mode is intially set
+     * to {@link MouseMode#FLIGHT}.
      * <ul>
      * <li>{@link MouseMode#FLIGHT} - cursor is hidden and mouse movement rotates
      * camera.</li>
@@ -152,24 +210,21 @@ public class Camera {
      * point selection.</li>
      * </ul>
      *
-     * @param mouseMode    New mouse mode
      * @param windowHandle GLFW window handle
      */
-    public void setMouseMode(MouseMode mouseMode, long windowHandle) {
-        if (mouseMode == null) {
-            logger.error("Failed to set mouse mode");
-            return;
-        }
-
-        this.mouseMode = mouseMode;
-        switch (mouseMode) {
+    public void setMouseMode(long windowHandle) {
+        switch (this.mouseMode) {
             case MouseMode.FLIGHT:
-                glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                this.mouseMode = MouseMode.SELECTION;
                 break;
             case MouseMode.SELECTION:
-                glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                this.mouseMode = MouseMode.FLIGHT;
                 break;
             default:
+                glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                this.mouseMode = MouseMode.FLIGHT;
                 break;
         }
     }
@@ -215,7 +270,7 @@ public class Camera {
      * Called when camera moves or rotates.
      */
     private void updateViewMatrix() {
-        this.viewMatrix = new Matrix4f().lookAt(this.position, new Vector3f(this.position).add(this.front),
+        this.viewMatrix = new Matrix4f().lookAtLH(this.position, new Vector3f(this.position).add(this.front),
                 this.up);
     }
 
@@ -224,11 +279,11 @@ public class Camera {
      * is quite self explanatory: it adds perspective).
      */
     private void updateProjectionMatrix() {
-        this.projectionMatrix = new Matrix4f().perspective(
+        this.projectionMatrix = new Matrix4f().perspectiveLH(
                 (float) Math.toRadians(this.fov),
                 this.aspectRatio,
                 0.1f,
-                1000f);
+                Constants.CAMERA_FAR_PLANE);
     }
 
     /**

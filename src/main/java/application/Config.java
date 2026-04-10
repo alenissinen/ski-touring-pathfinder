@@ -26,6 +26,9 @@ public class Config {
     /** Render distanche in chunk units */
     private int renderDistance = 8;
 
+    /** Movement speed */
+    private float movementSpeed = 100.0f;
+
     /**
      * Private constructor, use {@link Builder} to create a configuration
      */
@@ -82,6 +85,13 @@ public class Config {
     }
 
     /**
+     * @return Movement speed
+     */
+    public float getMovementSpeed() {
+        return movementSpeed;
+    }
+
+    /**
      * Builder for constructing a {@link Config} instance
      *
      * <pre>{@code
@@ -100,6 +110,7 @@ public class Config {
         private int openGlMajor;
         private int openGlMinor;
         private int renderDistance;
+        private float movementSpeed;
 
         /**
          * Sets the window title
@@ -179,6 +190,17 @@ public class Config {
         }
 
         /**
+         * Sets the movement speed
+         * 
+         * @param movementSpeed Movoment speed
+         * @return Current {@link Builder} instance
+         */
+        public Builder movementSpeed(float movementSpeed) {
+            this.movementSpeed = movementSpeed;
+            return this;
+        }
+
+        /**
          * Builds and returns a {@link Config} instance
          * 
          * @return Configured {@link Config} object
@@ -192,6 +214,7 @@ public class Config {
             config.openGlMajor = this.openGlMajor;
             config.openGlMinor = this.openGlMinor;
             config.renderDistance = this.renderDistance;
+            config.movementSpeed = this.movementSpeed;
 
             return config;
         }
@@ -205,6 +228,7 @@ public class Config {
                 "\n  targetFps      = " + targetFps +
                 "\n  openGlVersion  = " + openGlMajor + "." + openGlMinor +
                 "\n  renderDistance = " + renderDistance + " chunks" +
+                "\n  movementSpeed  = " + movementSpeed + "m/s" +
                 "\n}";
     }
 }

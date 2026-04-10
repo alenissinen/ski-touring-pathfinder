@@ -60,6 +60,9 @@ public class Shader implements AutoCloseable {
     /** OpenGL handle for the fragment shader */
     private int fragmentShaderId;
 
+    // 16-bit float buffer to use for uploading uniform values to gpu
+    private final FloatBuffer mat4Buffer = BufferUtils.createFloatBuffer(16);
+
     /**
      * Loads, compiles and links a shader program from vertex and fragment shader
      * files.
@@ -90,7 +93,7 @@ public class Shader implements AutoCloseable {
 
         try {
             String fragment = this.loadSource(fragmentShader);
-            this.compileShader(fragment, GL_VERTEX_SHADER, fragmentShader);
+            this.compileShader(fragment, GL_FRAGMENT_SHADER, fragmentShader);
 
             logger.info("Fragment shader ({}) compiled", fragmentShader);
         } catch (IOException e) {
@@ -120,13 +123,12 @@ public class Shader implements AutoCloseable {
      * @param value 4x4 matrix ({@link Matrix4f})
      */
     public void setMat4(String name, Matrix4f value) {
-        // Create new float buffer
-        FloatBuffer floatBuf = BufferUtils.createFloatBuffer(16);
-        value.get(floatBuf);
-        floatBuf.flip();
+        this.mat4Buffer.clear();
+        value.get(this.mat4Buffer);
+        this.mat4Buffer.rewind();
 
         int uniformLocation = glGetUniformLocation(this.programId, name);
-        glUniformMatrix4fv(uniformLocation, false, floatBuf);
+        glUniformMatrix4fv(uniformLocation, false, this.mat4Buffer);
     }
 
     /**
@@ -201,9 +203,9 @@ public class Shader implements AutoCloseable {
                 glShaderSource(this.fragmentShaderId, source);
                 glCompileShader(this.fragmentShaderId);
 
-                if (glGetShaderi(this.vertexShaderId, GL_COMPILE_STATUS) == GL_FALSE)
+                if (glGetShaderi(this.fragmentShaderId, GL_COMPILE_STATUS) == GL_FALSE)
                     throw new ShaderException("Failed to compile fragment shader", shaderName,
-                            glGetShaderInfoLog(this.vertexShaderId));
+                            glGetShaderInfoLog(this.fragmentShaderId));
                 glAttachShader(this.programId, this.fragmentShaderId);
             default:
                 break;

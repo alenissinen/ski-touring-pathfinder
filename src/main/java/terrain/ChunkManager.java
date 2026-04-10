@@ -1,12 +1,11 @@
 package terrain;
 
 import rendering.Camera;
-import rendering.Renderer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.joml.Vector3f;
@@ -20,10 +19,10 @@ import application.Constants;
  * Acts as a bridge between {@link Chunk} and {@link Renderer}
  *
  * <p>
- * Chunks are identified by a packed {@code int} key created by its
- * grid coordinates: {@code (chunkX << 8) | chunkZ}. The key can be unpacked:
- * {@code chunkX = key >> 8} and {@code chunkZ = key & 0xFF}. A packed
- * {@code int}
+ * Chunks are identified by a packed {@code long} key created from 32-bit
+ * chunk coordinates. This avoids collisions for negative values.
+ * A packed
+ * {@code long}
  * is preferred over a {@code String} key to avoid object allocation and hashing
  * on
  * every lookup. This is done pre-emptively to support a lot larger maps.
@@ -45,13 +44,22 @@ public class ChunkManager {
     /** Maximum distance in chunks that are rendered */
     private final int renderDistance;
 
+    /**
+     * Extra chunk rings kept loaded past {@link #renderDistance} so boundary chunks
+     * are
+     * not unloaded as soon as the camera crosses the edge (reduces visible
+     * popping).
+     */
+    private static final int UNLOAD_EXTRA_CHUNKS = 2;
+
     /** Reference to the full height map all chunks use for elevation data */
     private final HeightMap heightMap;
 
     /**
-     * Currently loaded chunks, key is a packed int: {@code (chunkX << 8) | chunkZ}
+     * Currently loaded chunks, key is a packed long:
+     * {@code (((long) chunkX) << 32) | (chunkZ & 0xffffffffL)}
      */
-    private final HashMap<Integer, Chunk> loadedChunks;
+    private final HashMap<Long, Chunk> loadedChunks;
 
     /**
      * Constructs a new {@code ChunkManager}.
@@ -62,7 +70,7 @@ public class ChunkManager {
     public ChunkManager(HeightMap heightMap, int renderDistance) {
         this.heightMap = heightMap;
         this.renderDistance = renderDistance;
-        this.loadedChunks = new HashMap<Integer, Chunk>();
+        this.loadedChunks = new HashMap<Long, Chunk>();
 
         logger.info("Chunk manager instantiated: renderDistance {}", renderDistance);
     }
@@ -93,85 +101,101 @@ public class ChunkManager {
         Vector3f cameraPos = camera.getPosition();
         int cameraChunkX = this.toChunkX(cameraPos.x);
         int cameraChunkZ = this.toChunkZ(cameraPos.z);
+        AtomicInteger removedCount = new AtomicInteger(0);
 
         // Calculate whether previously loaded chunks are in render distance and in
         // front of camera
-        for (Map.Entry<Integer, Chunk> element : this.loadedChunks.entrySet()) {
-            Chunk chunk = element.getValue();
+        this.loadedChunks.entrySet().removeIf(entry -> {
+            Chunk chunk = entry.getValue();
+            boolean outOfRange = isPastUnloadRadius(chunk.getChunkX(), chunk.getChunkZ(), cameraChunkX,
+                    cameraChunkZ);
 
-            // Remove chunk if it is behind camera
-            if (this.isChunkBehindCamera(chunk.getChunkX(), chunk.getChunkZ(), cameraChunkX, cameraChunkZ,
-                    camera.getFront())) {
-                // Free chunk gpu resources and remove from loaded list
+            if (outOfRange) {
                 chunk.dispose();
-                this.loadedChunks.remove(element.getKey());
-
-                continue;
+                removedCount.incrementAndGet();
+                return true;
             }
 
-            if (!this.isChunkInRenderDistance(chunk.getChunkX(), chunk.getChunkZ(), cameraChunkX, cameraChunkZ)) {
-                // Free chunk gpu resources and remove from loaded list
-                chunk.dispose();
-                this.loadedChunks.remove(element.getKey());
-            }
-        }
+            return false;
+        });
 
-        // Load new chunks within render distance
+        // Load chunks within render distance
         for (int x = cameraChunkX - this.renderDistance; x <= cameraChunkX + this.renderDistance; x++) {
             for (int z = cameraChunkZ - this.renderDistance; z <= cameraChunkZ + this.renderDistance; z++) {
-                // Dont add chunk if it is behind camera
-                if (this.isChunkBehindCamera(x, z, cameraChunkX, cameraChunkZ, cameraPos))
+                if (!this.isInsideLoadRadius(x, z, cameraChunkX, cameraChunkZ))
                     continue;
 
-                int packedKey = this.packKey(x, z);
+                long packedKey = this.packKey(x, z);
 
                 // Dont add chunk if it already is in the map
-                if (this.loadedChunks.containsKey(packedKey))
-                    continue;
+                // Uploads chunk data to GPU if it isnt uploaded for some reason
+                if (this.loadedChunks.containsKey(packedKey)) {
+                    Chunk chunk = this.loadedChunks.get(packedKey);
+                    if (!chunk.isUploaded())
+                        chunk.upload();
 
-                // Add new chunk to the loaded chunks map
-                this.loadedChunks.put(packedKey, new Chunk(heightMap, x, z));
+                    continue;
+                }
+
+                // Add new chunk to the loaded chunks map and upload to GPU
+                Chunk chunk = new Chunk(heightMap, x, z);
+
+                chunk.upload();
+                this.loadedChunks.put(packedKey, chunk);
             }
         }
     }
 
     /**
-     * Checks if a chunk is inside the render distance from the camera.
-     * 
-     * @param chunkX       Target chunk X coordinate
-     * @param chunkZ       Target chunk Z coordinate
-     * @param cameraChunkX Camera chunk X coordinate
-     * @param cameraChunkZ Camera chunk Z coordinate
-     * @return True if the chunk is inside the render distance, false if outside
+     * Calculates the squared Euclidean distance between two chunks in a 2D grid.
+     *
+     * @param chunkX       X-coordinate of the target chunk
+     * @param chunkZ       Z-coordinate of the target chunk
+     * @param cameraChunkX X-coordinate of the cameras current chunk
+     * @param cameraChunkZ Z-coordinate of the cameras current chunk
+     * @return The squared distance (dx^2 + dz^2) between the two chunks.
      */
-    private boolean isChunkInRenderDistance(int chunkX, int chunkZ, int cameraChunkX, int cameraChunkZ) {
-        // Calculate whether distance between chunks is greater than render distance
-        int chunkdx = cameraChunkX - chunkX;
-        int chunkdz = cameraChunkZ - chunkZ;
-
-        return Math.sqrt(chunkdx * chunkdx + chunkdz * chunkdz) <= this.renderDistance;
+    private static int chunkDistSq(int chunkX, int chunkZ, int cameraChunkX, int cameraChunkZ) {
+        int dx = cameraChunkX - chunkX;
+        int dz = cameraChunkZ - chunkZ;
+        return dx * dx + dz * dz;
     }
 
     /**
-     * Checks if a chunk is behind the camera.
-     * 
-     * @param chunkX       Target chunk X coordinate
-     * @param chunkZ       Target chunk Z coordinate
-     * @param cameraChunkX Camera chunk X coordinate
-     * @param cameraChunkZ Camera chunk Z coordinate
-     * @param cameraFront  Camera front vector
-     * @return True if the chunk is behind the camera, false if not
+     * Checks if the chunk is within the Euclidean circle, this results in a
+     * circular rendering pattern instead of a square one.
+     *
+     * @param chunkX       X-coordinate of the chunk to check
+     * @param chunkZ       Z-coordinate of the chunk to check
+     * @param cameraChunkX X-coordinate of the camera's current chunk
+     * @param cameraChunkZ Z-coordinate of the camera's current chunk
+     * @return {@code true} if the chunk is within or on the boundary of the
+     *         render distance, {@code false} otherwise.
      */
-    private boolean isChunkBehindCamera(int chunkX, int chunkZ, int cameraChunkX, int cameraChunkZ,
-            Vector3f cameraFront) {
-        // Calculate dot product between camera front vector and
-        // current chunk - camera chunk vector
-        float dx = chunkX - cameraChunkX;
-        float dz = chunkZ - cameraChunkZ;
+    private boolean isInsideLoadRadius(int chunkX, int chunkZ, int cameraChunkX, int cameraChunkZ) {
+        int r = this.renderDistance;
+        return chunkDistSq(chunkX, chunkZ, cameraChunkX, cameraChunkZ) <= r * r;
+    }
 
-        float dot = dx * cameraFront.x + dz * cameraFront.z;
-
-        return dot < 0;
+    /**
+     * Determines whether a chunk is far enough outside the render distance to be
+     * safely unloaded.
+     * <p>
+     * This method uses an expanded radius ({@link #renderDistance} +
+     * {@code UNLOAD_EXTRA_CHUNKS}) to prevent flickering on the edge of the
+     * rendering distance.
+     * </p>
+     *
+     * @param chunkX       X-coordinate of the chunk to check
+     * @param chunkZ       Z-coordinate of the chunk to check
+     * @param cameraChunkX X-coordinate of the cameras current chunk
+     * @param cameraChunkZ Z-coordinate of the cameras current chunk
+     * @return {@code true} if the chunk is outside the unload boundary,
+     *         {@code false} otherwise.
+     */
+    private boolean isPastUnloadRadius(int chunkX, int chunkZ, int cameraChunkX, int cameraChunkZ) {
+        int r = this.renderDistance + UNLOAD_EXTRA_CHUNKS;
+        return chunkDistSq(chunkX, chunkZ, cameraChunkX, cameraChunkZ) > r * r;
     }
 
     /**
@@ -193,8 +217,8 @@ public class ChunkManager {
      * @param chunkZ Grid Z coordinate of the chunk
      * @return Packed key as {@code (chunkX << 8) | chunkZ}
      */
-    private int packKey(int chunkX, int chunkZ) {
-        return (chunkX << 8) | chunkZ;
+    private long packKey(int chunkX, int chunkZ) {
+        return (((long) chunkX) << 32) | (chunkZ & 0xffffffffL);
     }
 
     /**

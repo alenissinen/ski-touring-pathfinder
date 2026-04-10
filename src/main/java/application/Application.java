@@ -1,21 +1,20 @@
 package application;
 
-import org.lwjgl.glfw.*;
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11C.*;
+
+import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import exceptions.HeightMapParseException;
 import input.InputHandler;
+import rendering.Camera;
 import rendering.Renderer;
 import terrain.ChunkManager;
 import terrain.HeightMap;
-import rendering.Camera;
-
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
-
-import org.joml.Vector3f;
 
 /**
  * Main application class responsible for the program lifecycle. Manages
@@ -94,13 +93,16 @@ public class Application {
 
         logger.info("Height maps created and merged");
 
-        Camera camera = new Camera(new Vector3f(), 68.0f, (float) this.config.getWidth() / this.config.getHeight(),
-                2.0f);
+        float spawnY = merged.getElevation(2000, 500) + 40.0f;
+
+        Camera camera = new Camera(new Vector3f(2000f, spawnY, 500f), 68.0f,
+                (float) this.config.getWidth() / this.config.getHeight(), this.config.getMovementSpeed());
         ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
+
         this.renderer = new Renderer(camera, chunkManager, null, this.window);
         this.inputHandler = new InputHandler(this.window.getHandle(), camera, merged, null);
 
-        logger.info("Renderer and InputHandler instances instantiated");
+        logger.info("Modules instantiated");
     }
 
     /**
@@ -116,27 +118,31 @@ public class Application {
         // Set background color to black
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-        // Set face culling and wireframe
-        glEnable(GL_CULL_FACE);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        // TODO: figure out why enabling face culling breaks everything :((
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // Convert target fps to target frametime
         float targetFrameTime = 1.0f / config.getTargetFps();
 
         // Keep track of the last time when something was rendered
-        float lastTime = (float) glfwGetTime();
+        double lastTime = glfwGetTime();
 
         // Run rendering loop until user closes the window
-        // Render new frame -> swap buffers (display the frame) -> poll for window
-        // events
         while (!glfwWindowShouldClose(window.getHandle())) {
-            // Difference in time between current time and last time something was rendered
-            double deltaTime = glfwGetTime() - lastTime;
+            // Always poll so input stays responsive while waiting for the next tick
+            glfwPollEvents();
+
+            double now = glfwGetTime();
+            double deltaTime = now - lastTime;
 
             if (deltaTime >= targetFrameTime) {
-                renderer.render(deltaTime);
+                lastTime = now;
+                this.renderer.getCamera().update(this.inputHandler.getPressedKeys(), (float) deltaTime);
+                renderer.render();
                 glfwSwapBuffers(window.getHandle());
-                glfwPollEvents();
             }
         }
     }
@@ -146,8 +152,8 @@ public class Application {
      * Disposes OpenGL resources, destroys the GLFW window and terminates GLFW.
      */
     public void cleanUp() {
-        this.renderer.cleanUp();
         this.window.cleanUp();
+        this.renderer.cleanUp();
 
         logger.info("Application resources removed from RAM and VRAM");
     }

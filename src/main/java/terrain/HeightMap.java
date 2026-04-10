@@ -71,7 +71,13 @@ public class HeightMap {
      * @return Elevation (y) in meters
      */
     public float getElevation(int x, int z) {
-        return this.data[z][x];
+        int arrayX = x + (this.width / 2);
+        int arrayZ = z + (this.height / 2);
+
+        arrayX = Math.max(0, Math.min(arrayX, this.width - 1));
+        arrayZ = Math.max(0, Math.min(arrayZ, this.height - 1));
+
+        return this.data[arrayZ][arrayX];
     }
 
     /**

@@ -27,10 +27,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Represents a 125x125 section of the merged {@link HeightMap}.
+ * Represents a {@code CHUNK_SIZE}×{@code CHUNK_SIZE} cell region of the active
+ * {@link HeightMap}, built from {@code (CHUNK_SIZE+1)²} vertices so seams match
+ * neighbors.
+ * 
+ * <p>
  * Manages its own OpenGL resources (VBO, VAO, EBO) and handles data sharing
  * to and from the GPU.
- *
+ * </p>
+ * 
  * <p>
  * Chunks are identified by their grid position (x,z)
  * </p>
@@ -88,8 +93,6 @@ public class Chunk implements AutoCloseable {
         this.chunkZ = chunkZ;
         this.offsetX = chunkX * Constants.CHUNK_SIZE;
         this.offsetZ = chunkZ * Constants.CHUNK_SIZE;
-
-        logger.info("Chunk ({}, {}) loaded", chunkX, chunkZ);
     }
 
     /**
@@ -121,24 +124,24 @@ public class Chunk implements AutoCloseable {
      * @return Float array of vertex data
      */
     private float[] createVertexData() {
-        float[] vertexData = new float[Constants.CHUNK_SIZE * Constants.CHUNK_SIZE * 3];
+        int dim = Constants.CHUNK_VERTEX_DIM;
+        float[] vertexData = new float[dim * dim * 3];
 
-        for (int row = 0; row < Constants.CHUNK_SIZE; row++) {
-            for (int col = 0; col < Constants.CHUNK_SIZE; col++) {
+        for (int row = 0; row < dim; row++) {
+            for (int col = 0; col < dim; col++) {
                 // Convert grid coordinates to world coordinates
                 float x = (offsetX + col) * Constants.WORLD_SCALE;
                 float z = (offsetZ + row) * Constants.WORLD_SCALE;
                 float y = this.heightMap.getElevation(offsetX + col, offsetZ + row);
 
                 // Store coordinates in the array
-                int index = (row * Constants.CHUNK_SIZE + col) * 3;
+                int index = (row * dim + col) * 3;
                 vertexData[index] = x;
                 vertexData[index + 1] = y;
                 vertexData[index + 2] = z;
             }
         }
 
-        logger.info("Chunk ({}, {}) vertex data created", this.chunkX, this.chunkZ);
         return vertexData;
     }
 
@@ -146,21 +149,22 @@ public class Chunk implements AutoCloseable {
      * Generates index data for this chunk as a flat int array.
      * Each grid square is divided into two triangles (A,C,B) and (B,C,D).
      *
-     * @return Int array of index data, size {@code (CHUNK_SIZE-1)² * 2 * 3}
+     * @return Int array of index data, size {@code CHUNK_SIZE² * 2 * 3}
      */
     private int[] createIndexData() {
-        int indexAmount = Constants.CHUNK_SIZE - 1;
+        int dim = Constants.CHUNK_VERTEX_DIM;
+        int quads = Constants.CHUNK_SIZE;
         int index = 0;
 
-        // (CHUNK_SIZE-1)^2 squares, 2 triangles per square, 3 indices per triangle
-        int[] indexData = new int[indexAmount * indexAmount * 2 * 3];
+        // CHUNK_SIZE^2 squares (shared seam: dim = CHUNK_SIZE + 1 vertices per axis)
+        int[] indexData = new int[quads * quads * 2 * 3];
 
-        for (int row = 0; row < indexAmount; row++) {
-            for (int col = 0; col < indexAmount; col++) {
-                int a = row * Constants.CHUNK_SIZE + col;
-                int b = row * Constants.CHUNK_SIZE + col + 1;
-                int c = (row + 1) * Constants.CHUNK_SIZE + col;
-                int d = (row + 1) * Constants.CHUNK_SIZE + col + 1;
+        for (int row = 0; row < quads; row++) {
+            for (int col = 0; col < quads; col++) {
+                int a = row * dim + col;
+                int b = row * dim + col + 1;
+                int c = (row + 1) * dim + col;
+                int d = (row + 1) * dim + col + 1;
 
                 // First triangle
                 indexData[index++] = a;
@@ -174,7 +178,6 @@ public class Chunk implements AutoCloseable {
             }
         }
 
-        logger.info("Chunk ({}, {}) index data created", this.chunkX, this.chunkZ);
         return indexData;
     }
 
@@ -209,8 +212,7 @@ public class Chunk implements AutoCloseable {
 
         this.indexCount = indexData.length;
         glBindVertexArray(0);
-
-        logger.info("Chunk ({}, {}) mesh data uploaded to gpu", chunkX, chunkZ);
+        this.uploaded = true;
     }
 
     /**
@@ -242,8 +244,7 @@ public class Chunk implements AutoCloseable {
     public void dispose() {
         glDeleteVertexArrays(this.vao);
         glDeleteBuffers(new int[] { this.vbo, this.ebo });
-
-        logger.info("Chunk ({}, {}) disposed", chunkX, chunkZ);
+        this.uploaded = false;
     }
 
     /**

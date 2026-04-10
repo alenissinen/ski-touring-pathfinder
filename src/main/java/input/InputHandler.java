@@ -1,21 +1,13 @@
 package input;
 
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
-import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
-import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
+import static org.lwjgl.glfw.GLFW.*;
 
-import java.nio.DoubleBuffer;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.lwjgl.BufferUtils;
-import org.lwjgl.system.MemoryStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.lwjgl.opengl.GL11C.glViewport;
 
 import application.MouseMode;
 import pathfinding.AStar;
@@ -85,6 +77,15 @@ public class InputHandler {
     private double lastMouseX = -1, lastMouseY = -1;
 
     /**
+     * Set of supported movement keys, supports a few extra keys for dvorak enjoyers
+     * :)
+     */
+    private static final Set<Integer> MOVEMENT_KEYS = Set.of(
+            GLFW_KEY_W, GLFW_KEY_A, GLFW_KEY_S, GLFW_KEY_D,
+            GLFW_KEY_Q, GLFW_KEY_E, GLFW_KEY_O, GLFW_KEY_L,
+            GLFW_KEY_U, GLFW_KEY_SEMICOLON, GLFW_KEY_P, GLFW_KEY_J);
+
+    /**
      * Counstructs a new {@code InputHandler} and registers GLFW callbacks.
      * 
      * @param windowHandle GLFW window handle
@@ -107,11 +108,8 @@ public class InputHandler {
 
     /** Registers GLFW callbacks for input handling */
     private void registerCallbacks() {
-        // ESC closes the window
         glfwSetKeyCallback(this.windowHandle, (_window, key, _scancode, action, _mods) -> {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-                glfwSetWindowShouldClose(this.windowHandle, true);
-            }
+            this.onKeyEvent(key, action);
         });
 
         logger.info("GLFW key callback set");
@@ -137,6 +135,20 @@ public class InputHandler {
      * @param action GLFW action code ({@code GLFW_PRESS}, {@code GLFW_RELEASE})
      */
     private void onKeyEvent(int key, int action) {
+        // ESC closes the window
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
+            glfwSetWindowShouldClose(this.windowHandle, true);
+
+        if (key == GLFW_KEY_TAB && action == GLFW_RELEASE)
+            this.camera.setMouseMode(this.windowHandle);
+
+        // Add pressed keys to set if the current key is supported
+        if (action == GLFW_PRESS && MOVEMENT_KEYS.contains(key) && !pressedKeys.contains(key))
+            pressedKeys.add(key);
+
+        // Remove key from pressed key set if the key is released
+        if (action == GLFW_RELEASE && pressedKeys.contains(key))
+            pressedKeys.remove(key);
     }
 
     /**
@@ -146,11 +158,18 @@ public class InputHandler {
      * @param mouseY Current mouse Y position
      */
     private void onMouseMove(double mouseX, double mouseY) {
+        // Update initial mouse position to prevent large delta values
+        if (this.lastMouseX < 0 || this.lastMouseY < 0) {
+            this.lastMouseX = mouseX;
+            this.lastMouseY = mouseY;
+            return;
+        }
+
         this.camera.rotate(this.lastMouseX - mouseX, this.lastMouseY - mouseY);
 
         // Set last mouse position variables to current values
-        this.lastMouseX = (int) mouseX;
-        this.lastMouseY = (int) mouseY;
+        this.lastMouseX = mouseX;
+        this.lastMouseY = mouseY;
     }
 
     /**
@@ -164,13 +183,15 @@ public class InputHandler {
     }
 
     /**
-     * Handles window resizing to calculate new projection matrix
+     * Handles window resizing to calculate new projection matrix and updates the
+     * viewport
      * 
      * @param newWidth  New window width
      * @param newHeight New window height
      */
     private void onWindowResize(int newWidth, int newHeight) {
         this.camera.onResize(newWidth, newHeight);
+        glViewport(0, 0, newWidth, newHeight);
     }
 
     /**
@@ -190,8 +211,8 @@ public class InputHandler {
 
     /**
      * Returns the set of currently pressed GLFW key codes.
-     * Sent to {@link Camera#update} every frame.
-     * 
+     * The main loop passes this to {@link Camera#update} each frame.
+     *
      * @return Set of currently pressed key codes
      */
     public Set<Integer> getPressedKeys() {

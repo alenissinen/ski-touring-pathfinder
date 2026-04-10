@@ -13,10 +13,11 @@ public class Main {
                 .title("Ski Touring Pathfinder")
                 .width(1280)
                 .height(720)
-                .targetFps(60)
+                .targetFps(240)
                 .major(4)
                 .minor(1) // macOS doesn't officially support 4.6
-                .renderDistance(12)
+                .renderDistance(36)
+                .movementSpeed(1000)
                 .build();
 
         logger.info(config.toString());
