@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import exceptions.HeightMapParseException;
 import input.InputHandler;
+import pathfinding.AStar;
 import rendering.Camera;
 import rendering.Renderer;
 import terrain.ChunkManager;
@@ -99,8 +100,9 @@ public class Application {
                 (float) this.config.getWidth() / this.config.getHeight(), this.config.getMovementSpeed());
         ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
 
-        this.renderer = new Renderer(camera, chunkManager, null, this.window);
-        this.inputHandler = new InputHandler(this.window.getHandle(), camera, merged, null);
+        AStar aStar = new AStar(merged);
+        this.renderer = new Renderer(camera, chunkManager, aStar, this.window);
+        this.inputHandler = new InputHandler(this.window.getHandle(), camera, merged, aStar, this.renderer.getShader());
 
         logger.info("Modules instantiated");
     }
@@ -115,11 +117,11 @@ public class Application {
         // and makes the OpenGL bindings available
         GL.createCapabilities();
 
-        // Set background color to black
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        // Set background color to light blue
+        glClearColor(0.58f, 0.88f, 1.0f, 0.9f);
 
-        // TODO: figure out why enabling face culling breaks everything :((
-        glDisable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

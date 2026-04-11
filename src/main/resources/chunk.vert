@@ -1,12 +1,12 @@
 #version 410 core
-layout (location = 0) in vec3 pos;
+layout (location = 0) in vec3 aPos;
 
-uniform mat4 MVP;
+uniform mat4 uMVP;
 
-out float vElevation;
+out vec3 vWorldPos;
 
 void main()
 {
-    gl_Position = MVP * vec4(pos, 1.0);
-    vElevation = pos.y;
+    gl_Position = uMVP * vec4(aPos, 1.0);
+    vWorldPos = aPos;
 }

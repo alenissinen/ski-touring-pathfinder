@@ -82,7 +82,7 @@ public class Renderer {
 
         // Calculate MVP
         Matrix4f MVP = this.buildMVP(model);
-        this.shader.setMat4("MVP", MVP);
+        this.shader.setMat4("uMVP", MVP);
 
         var heightMap = this.chunkManager.getHeightMap();
         this.shader.setFloat("uElevationMin", heightMap.getDataMinElevation());
@@ -141,5 +141,12 @@ public class Renderer {
      */
     public Camera getCamera() {
         return this.camera;
+    }
+
+    /**
+     * @return Current shader instance
+     */
+    public Shader getShader() {
+        return this.shader;
     }
 }

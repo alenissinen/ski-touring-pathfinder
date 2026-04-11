@@ -2,16 +2,27 @@ package input;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+import java.nio.Buffer;
+import java.nio.DoubleBuffer;
+import java.nio.IntBuffer;
+import java.text.NumberFormat;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
+import org.lwjgl.BufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.lwjgl.opengl.GL11C.glViewport;
 
+import application.Constants;
 import application.MouseMode;
 import pathfinding.AStar;
 import rendering.Camera;
+import rendering.Shader;
 import terrain.HeightMap;
 
 /**
@@ -58,14 +69,17 @@ public class InputHandler {
     /** A* instance for pathfinding */
     private final AStar aStar;
 
+    /** Shader instance for uniform values */
+    private final Shader shader;
+
     /** Set of currently pressed keys for movement */
     private final Set<Integer> pressedKeys;
 
     /** Start point coordinates */
-    private int startX, startZ;
+    private float startX, startZ;
 
     /** Goal point coordinates */
-    private int goalX, goalZ;
+    private float goalX, goalZ;
 
     /**
      * Whether the start point has been selected, resets after pathfinding is
@@ -93,11 +107,12 @@ public class InputHandler {
      * @param heightMap    Height map for point selection
      * @param aStar        A* instance for pathfinding
      */
-    public InputHandler(long windowHandle, Camera camera, HeightMap heightMap, AStar aStar) {
+    public InputHandler(long windowHandle, Camera camera, HeightMap heightMap, AStar aStar, Shader shader) {
         this.windowHandle = windowHandle;
         this.camera = camera;
         this.heightMap = heightMap;
         this.aStar = aStar;
+        this.shader = shader;
 
         // Initialize other variables
         this.pressedKeys = new HashSet<Integer>();
@@ -114,17 +129,23 @@ public class InputHandler {
 
         logger.info("GLFW key callback set");
 
-        glfwSetWindowSizeCallback(windowHandle, (_window, newWidth, newHeight) -> {
+        glfwSetWindowSizeCallback(this.windowHandle, (_window, newWidth, newHeight) -> {
             this.onWindowResize(newWidth, newHeight);
         });
 
         logger.info("GLFW window size callback set");
 
-        glfwSetCursorPosCallback(windowHandle, (_window, xpos, ypos) -> {
+        glfwSetCursorPosCallback(this.windowHandle, (_window, xpos, ypos) -> {
             this.onMouseMove(xpos, ypos);
         });
 
         logger.info("GLFW cursor position callback set");
+
+        glfwSetMouseButtonCallback(this.windowHandle, (_window, button, action, _mods) -> {
+            this.onMouseClick(button, action);
+        });
+
+        logger.info("GLFW mouse button click callback set");
     }
 
     /**
@@ -180,6 +201,49 @@ public class InputHandler {
      * @param action GLFW action code ({@code GLFW_PRESS}, {@code GLFW_RELEASE})
      */
     private void onMouseClick(int button, int action) {
+        // logger.debug("{}, {}, {}", this.camera.getMouseMode(), button, action);
+        if (this.camera.getMouseMode() == MouseMode.FLIGHT)
+            return;
+
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+            // Create buffers
+            DoubleBuffer xPos = BufferUtils.createDoubleBuffer(1);
+            DoubleBuffer yPos = BufferUtils.createDoubleBuffer(1);
+            IntBuffer width = BufferUtils.createIntBuffer(1);
+            IntBuffer height = BufferUtils.createIntBuffer(1);
+
+            // Fetch data
+            glfwGetCursorPos(this.windowHandle, xPos, yPos);
+            glfwGetFramebufferSize(this.windowHandle, width, height);
+
+            // Take values from buffers
+            float mouseX = (float) xPos.get(0);
+            float mouseY = (float) yPos.get(0);
+            int w = width.get(0);
+            int h = height.get(0);
+
+            // Calculate grid coordinates
+            float[] res = this.resolveGridCoordinates(mouseX, mouseY, w, h);
+            if (res == null)
+                return;
+
+            if (!this.startSelected) {
+                this.startX = res[0];
+                this.startZ = res[1];
+                this.startSelected = true;
+            } else {
+                this.goalX = res[0];
+                this.goalZ = res[1];
+                this.startSelected = false;
+
+                logger.debug("Pathfinding started | start = ({}, {}), goal = ({}, {})", this.startX, this.startZ,
+                        this.goalX, this.goalZ);
+            }
+
+            this.shader.bind();
+            this.shader.setVec2("uSelectedGrid", new Vector2f(res));
+            this.shader.unbind();
+        }
     }
 
     /**
@@ -204,9 +268,64 @@ public class InputHandler {
      * @return Grid coordinates as an array or {@code null} if no valid point is
      *         found
      */
-    private int[] resolveGridCoordinates(double mouseX, double mouseY) {
-        // TODO: remove placeholder
-        return new int[0];
+    private float[] resolveGridCoordinates(float mouseX, float mouseY, int w, int h) {
+        // Calculate NDC
+        float ndcX = (mouseX / w) * 2.0f - 1.0f;
+        float ndcY = 1.0f - (mouseY / h) * 2.0f;
+
+        Vector3f ndcRay = new Vector3f(ndcX, ndcY, 1.0f);
+
+        logger.debug("Converting mouse coordinates to ray");
+        logger.debug("ndcRay = {}", ndcRay.toString(NumberFormat.getNumberInstance()));
+
+        // Clip space ray
+        Vector4f rayClip = new Vector4f(ndcX, ndcY, 0.0f, 1.0f);
+
+        logger.debug("rayClip = {}", rayClip.toString(NumberFormat.getNumberInstance()));
+
+        // Turn clip space ray to eye space by multiplying it with inversed projection
+        // matrix
+        Vector4f rayEye = new Matrix4f(this.camera.getProjectionMatrix()).invert().transform(rayClip);
+        rayEye = new Vector4f(rayEye.x, rayEye.y, 1.0f, 0.0f);
+
+        logger.debug("rayEye = {}", rayEye.toString(NumberFormat.getNumberInstance()));
+
+        // World space conversion
+        Vector4f rayWorld = new Matrix4f(this.camera.getViewMatrix()).invert().transform(rayEye);
+
+        logger.debug("rayWorld = {}", rayWorld.toString(NumberFormat.getNumberInstance()));
+
+        // Actual ray direction
+        Vector3f rayDirection = rayWorld.xyz(new Vector3f()).normalize();
+
+        logger.debug("rayDirection = {}\n", rayDirection.toString(NumberFormat.getNumberInstance()));
+
+        float dist = Constants.CAMERA_FAR_PLANE;
+        Vector3f camPos = this.camera.getPosition();
+
+        // Use ray marching to find the intersection between ray and terrain
+        for (float n = 0; n < dist; n += Math.max(1.0f, n * 0.01f)) {
+            // Calculate current ray point in world space
+            float worldX = camPos.x + rayDirection.x * n;
+            float worldY = camPos.y + rayDirection.y * n;
+            float worldZ = camPos.z + rayDirection.z * n;
+
+            // Convert world space to grid position
+            int gridX = (int) Math.floor(worldX / Constants.WORLD_SCALE);
+            int gridZ = (int) Math.floor(worldZ / Constants.WORLD_SCALE);
+
+            // Bounds check
+            if (gridZ >= 0 && gridZ < this.heightMap.getHeight() && gridX >= 0 && gridX < this.heightMap.getWidth()) {
+                float gridY = this.heightMap.getElevation(gridX, gridZ);
+
+                if (worldY <= gridY) {
+                    logger.debug("Intersection found at: {}, {}, {}", gridX, gridY, gridZ);
+                    return new float[] { gridX, gridZ };
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

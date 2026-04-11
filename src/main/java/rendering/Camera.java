@@ -282,7 +282,7 @@ public class Camera {
         this.projectionMatrix = new Matrix4f().perspectiveLH(
                 (float) Math.toRadians(this.fov),
                 this.aspectRatio,
-                2f,
+                1f,
                 Constants.CAMERA_FAR_PLANE);
     }
 

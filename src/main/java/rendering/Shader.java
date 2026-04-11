@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.nio.FloatBuffer;
 
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 import org.slf4j.Logger;
@@ -120,10 +121,20 @@ public class Shader implements AutoCloseable {
      * @param value float value to set
      */
     public void setFloat(String name, float value) {
-        int loc = glGetUniformLocation(this.programId, name);
-        if (loc >= 0) {
-            glUniform1f(loc, value);
-        }
+        int location = glGetUniformLocation(this.programId, name);
+        glUniform1f(location, value);
+
+    }
+
+    /**
+     * Sets a {@code vec2} uniform.
+     * 
+     * @param name  Name of the uniform value in the shader
+     * @param value 2 component vector ({@link Vector2f})
+     */
+    public void setVec2(String name, Vector2f value) {
+        int location = glGetUniformLocation(this.programId, name);
+        glUniform2f(location, value.x, value.y);
     }
 
     /**

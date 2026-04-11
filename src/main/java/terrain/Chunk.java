@@ -168,13 +168,13 @@ public class Chunk implements AutoCloseable {
 
                 // First triangle
                 indexData[index++] = a;
-                indexData[index++] = c;
                 indexData[index++] = b;
+                indexData[index++] = c;
 
                 // Second triangle
                 indexData[index++] = b;
-                indexData[index++] = c;
                 indexData[index++] = d;
+                indexData[index++] = c;
             }
         }
 
