@@ -46,4 +46,5 @@ https://pro.arcgis.com/en/pro-app/latest/tool-reference/spatial-analyst/how-slop
 https://www.researchgate.net/publication283787554_Method_for_Measuring_the_Information_Content_of_Terrain_from_Digital_Elevation_Models (3.2.1)  
 https://www.cs.cornell.edu/courses/cs3410/2024fa/notes/bitpack.html  
 https://minecraft.wiki/w/Java_Edition_protocol/Data_types  
-https://github.com/SilverTiger/lwjgl3-tutorial/wiki/Input
+https://github.com/SilverTiger/lwjgl3-tutorial/wiki/Input  
+https://antongerdelan.net/opengl/raycasting.html
