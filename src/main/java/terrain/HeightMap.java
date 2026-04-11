@@ -27,6 +27,12 @@ public class HeightMap {
     /** Distance between data points in meters */
     private double cellSize;
 
+    /** Lowest elevation value in the height map */
+    private float dataMinM = Float.NaN;
+
+    /** Highest elevation value in the height map */
+    private float dataMaxM = Float.NaN;
+
     /**
      * Package-private constructor for direct instantiation and testing.
      * Production code should use {@link #fromAsciiFile(String)} instead!
@@ -68,7 +74,13 @@ public class HeightMap {
     }
 
     /**
-     * @return Elevation (y) in meters
+     * Elevation at logical grid coordinates, the same space as {@link Chunk}
+     * uses via {@code offsetX + column} / {@code offsetZ + row}, not raw array
+     * indices or world meters.
+     *
+     * @param x logical X (east–west grid step)
+     * @param z logical Z (north–south grid step)
+     * @return elevation in metres
      */
     public float getElevation(int x, int z) {
         int arrayX = x + (this.width / 2);
@@ -95,6 +107,47 @@ public class HeightMap {
     }
 
     /**
+     * Minimum elevation in the raw raster (metres)
+     */
+    public float getDataMinElevation() {
+        computeElevationBounds();
+        return this.dataMinM;
+    }
+
+    /**
+     * Maximum elevation in the raw raster (metres)
+     */
+    public float getDataMaxElevation() {
+        computeElevationBounds();
+        return this.dataMaxM;
+    }
+
+    /**
+     * Computes minimum and maximum elevation values from the height map data. For
+     * now used for shading in fragment shader.
+     */
+    private void computeElevationBounds() {
+        if (!Float.isNaN(this.dataMinM)) {
+            return;
+        }
+
+        float min = Float.POSITIVE_INFINITY;
+        float max = Float.NEGATIVE_INFINITY;
+
+        for (int z = 0; z < this.height; z++) {
+            for (int x = 0; x < this.width; x++) {
+                float v = this.data[z][x];
+                min = Math.min(min, v);
+                max = Math.max(max, v);
+            }
+        }
+
+        this.dataMinM = min;
+        this.dataMaxM = max;
+        logger.info("Height map data elevation range: {}m - {}m", min, max);
+    }
+
+    /**
      * Calculate slope angle in given (x, z) point.
      * 
      * @param x Grid X position
@@ -106,17 +159,18 @@ public class HeightMap {
      *      Pro article of slopes</a>
      */
     public double getSlopeAngle(int x, int z) {
-        // If chosen cell is an edge cell we return 0
-        // TODO: implement angle calculation for edge cells
-        if (x <= 0 || z <= 0 || x >= this.width - 1 || z >= this.height - 1) {
+        // Edge cases
+        int ax = x + (this.width / 2);
+        int az = z + (this.height / 2);
+        if (ax <= 0 || az <= 0 || ax >= this.width - 1 || az >= this.height - 1) {
             return 0.0;
         }
 
         // Surface scanning window, 3x3 array where the middle cell is the cell for
         // which the slope is being calculated
-        float a = this.data[z - 1][x - 1], b = this.data[z - 1][x], c = this.data[z - 1][x + 1],
-                d = this.data[z][x - 1], f = this.data[z][x + 1], g = this.data[z + 1][x - 1],
-                h = this.data[z + 1][x], i = this.data[z + 1][x + 1];
+        float a = this.data[az - 1][ax - 1], b = this.data[az - 1][ax], c = this.data[az - 1][ax + 1],
+                d = this.data[az][ax - 1], f = this.data[az][ax + 1], g = this.data[az + 1][ax - 1],
+                h = this.data[az + 1][ax], i = this.data[az + 1][ax + 1];
 
         // Since the header parser doesn't support NODATA values weight is always 4
         // (1+2*1+1)

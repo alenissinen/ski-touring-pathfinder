@@ -3,25 +3,7 @@ package rendering;
 import exceptions.ShaderException;
 
 import static org.lwjgl.opengl.GL11C.GL_FALSE;
-import static org.lwjgl.opengl.GL20C.GL_COMPILE_STATUS;
-import static org.lwjgl.opengl.GL20C.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20C.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20C.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20C.glAttachShader;
-import static org.lwjgl.opengl.GL20C.glCompileShader;
-import static org.lwjgl.opengl.GL20C.glCreateProgram;
-import static org.lwjgl.opengl.GL20C.glCreateShader;
-import static org.lwjgl.opengl.GL20C.glDeleteProgram;
-import static org.lwjgl.opengl.GL20C.glDeleteShader;
-import static org.lwjgl.opengl.GL20C.glGetProgrami;
-import static org.lwjgl.opengl.GL20C.glGetShaderInfoLog;
-import static org.lwjgl.opengl.GL20C.glShaderSource;
-import static org.lwjgl.opengl.GL20C.glUniform4f;
-import static org.lwjgl.opengl.GL20C.glGetShaderi;
-import static org.lwjgl.opengl.GL20C.glGetUniformLocation;
-import static org.lwjgl.opengl.GL20C.glLinkProgram;
-import static org.lwjgl.opengl.GL20C.glUniformMatrix4fv;
-import static org.lwjgl.opengl.GL20C.glUseProgram;
+import static org.lwjgl.opengl.GL20C.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -129,6 +111,19 @@ public class Shader implements AutoCloseable {
 
         int uniformLocation = glGetUniformLocation(this.programId, name);
         glUniformMatrix4fv(uniformLocation, false, this.mat4Buffer);
+    }
+
+    /**
+     * Sets a {@code float} uniform.
+     * 
+     * @param name  Name of the uniform value in the shader
+     * @param value float value to set
+     */
+    public void setFloat(String name, float value) {
+        int loc = glGetUniformLocation(this.programId, name);
+        if (loc >= 0) {
+            glUniform1f(loc, value);
+        }
     }
 
     /**

@@ -30,7 +30,7 @@ public class HeightMapTest {
 
     @Test
     void getElevation_returnsCorrectResult() {
-        assertEquals(4.8f, slope.getElevation(1, 2));
+        assertEquals(4.8f, slope.getElevation(0, 1));
     }
 
     @Test
@@ -45,16 +45,16 @@ public class HeightMapTest {
 
     @Test
     void getSlopeAngle_flat_returnsZero() {
-        assertEquals(0.0, flat.getSlopeAngle(1, 1), 0.1);
-    }
-
-    @Test
-    void getSlopeAngle_edgeCell_returnsZero() {
         assertEquals(0.0, flat.getSlopeAngle(0, 0), 0.1);
     }
 
     @Test
+    void getSlopeAngle_edgeCell_returnsZero() {
+        assertEquals(0.0, flat.getSlopeAngle(1, 0), 0.1);
+    }
+
+    @Test
     void getSlopeAngle_slope_returnsCorrectResult() {
-        assertEquals(39.2, slope.getSlopeAngle(1, 1), 0.1);
+        assertEquals(39.2, slope.getSlopeAngle(0, 0), 0.1);
     }
 }

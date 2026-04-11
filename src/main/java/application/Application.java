@@ -93,9 +93,9 @@ public class Application {
 
         logger.info("Height maps created and merged");
 
-        float spawnY = merged.getElevation(2000, 500) + 40.0f;
+        float spawnY = merged.getElevation(0, 0) + 40.0f;
 
-        Camera camera = new Camera(new Vector3f(2000f, spawnY, 500f), 68.0f,
+        Camera camera = new Camera(new Vector3f(0, spawnY, 0), 60f,
                 (float) this.config.getWidth() / this.config.getHeight(), this.config.getMovementSpeed());
         ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
 

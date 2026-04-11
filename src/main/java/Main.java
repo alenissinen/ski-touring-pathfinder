@@ -16,8 +16,8 @@ public class Main {
                 .targetFps(240)
                 .major(4)
                 .minor(1) // macOS doesn't officially support 4.6
-                .renderDistance(36)
-                .movementSpeed(1000)
+                .renderDistance(24)
+                .movementSpeed(200)
                 .build();
 
         logger.info(config.toString());

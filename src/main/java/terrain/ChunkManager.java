@@ -76,6 +76,13 @@ public class ChunkManager {
     }
 
     /**
+     * @return The height map shared by all chunks.
+     */
+    public HeightMap getHeightMap() {
+        return this.heightMap;
+    }
+
+    /**
      * @return All currently loaded chunks ({@link Chunk}) that are ready to be
      *         rendered
      */
@@ -109,8 +116,9 @@ public class ChunkManager {
             Chunk chunk = entry.getValue();
             boolean outOfRange = isPastUnloadRadius(chunk.getChunkX(), chunk.getChunkZ(), cameraChunkX,
                     cameraChunkZ);
+            boolean outsideData = !this.chunkOverlapsHeightMapData(chunk.getChunkX(), chunk.getChunkZ());
 
-            if (outOfRange) {
+            if (outOfRange || outsideData) {
                 chunk.dispose();
                 removedCount.incrementAndGet();
                 return true;
@@ -123,6 +131,9 @@ public class ChunkManager {
         for (int x = cameraChunkX - this.renderDistance; x <= cameraChunkX + this.renderDistance; x++) {
             for (int z = cameraChunkZ - this.renderDistance; z <= cameraChunkZ + this.renderDistance; z++) {
                 if (!this.isInsideLoadRadius(x, z, cameraChunkX, cameraChunkZ))
+                    continue;
+
+                if (!this.chunkOverlapsHeightMapData(x, z))
                     continue;
 
                 long packedKey = this.packKey(x, z);
@@ -199,6 +210,32 @@ public class ChunkManager {
     }
 
     /**
+     * Check whether chunk is still inside the height maps dimensions.
+     * 
+     * @param chunkX Chunk grid X coordinate
+     * @param chunkZ Chunx grid Z coordinate
+     * @return {@code true} if chunk is inside height map data, {@code false}
+     *         otherwise
+     */
+    private boolean chunkOverlapsHeightMapData(int chunkX, int chunkZ) {
+        int minLx = chunkX * Constants.CHUNK_SIZE;
+        int maxLx = minLx + Constants.CHUNK_SIZE;
+        int minLz = chunkZ * Constants.CHUNK_SIZE;
+        int maxLz = minLz + Constants.CHUNK_SIZE;
+
+        int halfW = this.heightMap.getWidth() / 2;
+        int halfH = this.heightMap.getHeight() / 2;
+        int minValidX = -halfW;
+        int maxValidX = this.heightMap.getWidth() - 1 - halfW;
+        int minValidZ = -halfH;
+        int maxValidZ = this.heightMap.getHeight() - 1 - halfH;
+
+        boolean xOverlap = maxLx >= minValidX && minLx <= maxValidX;
+        boolean zOverlap = maxLz >= minValidZ && minLz <= maxValidZ;
+        return xOverlap && zOverlap;
+    }
+
+    /**
      * Disposes all loaded chunks and clears internal state.
      * Must be called on application shutdown to free OpenGL resources!
      */
@@ -215,7 +252,8 @@ public class ChunkManager {
      *
      * @param chunkX Grid X coordinate of the chunk
      * @param chunkZ Grid Z coordinate of the chunk
-     * @return Packed key as {@code (chunkX << 8) | chunkZ}
+     * @return Packed key as
+     *         {@code (((long) chunkX) << 32) | (chunkZ & 0xffffffffL)}
      */
     private long packKey(int chunkX, int chunkZ) {
         return (((long) chunkX) << 32) | (chunkZ & 0xffffffffL);

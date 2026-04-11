@@ -84,6 +84,10 @@ public class Renderer {
         Matrix4f MVP = this.buildMVP(model);
         this.shader.setMat4("MVP", MVP);
 
+        var heightMap = this.chunkManager.getHeightMap();
+        this.shader.setFloat("uElevationMin", heightMap.getDataMinElevation());
+        this.shader.setFloat("uElevationMax", heightMap.getDataMaxElevation());
+
         // Clear framebuffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderTerrain();
