@@ -3,7 +3,10 @@ package application;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11C.*;
 
+import java.nio.IntBuffer;
+
 import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
@@ -98,6 +101,21 @@ public class Application {
 
         Camera camera = new Camera(new Vector3f(0, spawnY, 0), 60f,
                 (float) this.config.getWidth() / this.config.getHeight(), this.config.getMovementSpeed());
+
+        // Set initial viewport size
+        IntBuffer fbW = BufferUtils.createIntBuffer(1);
+        IntBuffer fbH = BufferUtils.createIntBuffer(1);
+
+        glfwGetFramebufferSize(this.window.getHandle(), fbW, fbH);
+
+        int iw = fbW.get(0);
+        int ih = fbH.get(0);
+
+        if (iw > 0 && ih > 0) {
+            camera.onResize(iw, ih);
+            glViewport(0, 0, iw, ih);
+        }
+
         ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
 
         AStar aStar = new AStar(merged);
@@ -122,6 +140,7 @@ public class Application {
 
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
+        glFrontFace(GL_CW);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

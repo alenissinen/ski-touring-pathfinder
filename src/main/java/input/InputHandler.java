@@ -211,16 +211,23 @@ public class InputHandler {
             DoubleBuffer yPos = BufferUtils.createDoubleBuffer(1);
             IntBuffer width = BufferUtils.createIntBuffer(1);
             IntBuffer height = BufferUtils.createIntBuffer(1);
+            IntBuffer winW = BufferUtils.createIntBuffer(1);
+            IntBuffer winH = BufferUtils.createIntBuffer(1);
 
-            // Fetch data
             glfwGetCursorPos(this.windowHandle, xPos, yPos);
             glfwGetFramebufferSize(this.windowHandle, width, height);
+            glfwGetWindowSize(this.windowHandle, winW, winH);
 
-            // Take values from buffers
-            float mouseX = (float) xPos.get(0);
-            float mouseY = (float) yPos.get(0);
-            int w = width.get(0);
-            int h = height.get(0);
+            int fbW = width.get(0);
+            int fbH = height.get(0);
+            int windowW = Math.max(1, winW.get(0));
+            int windowH = Math.max(1, winH.get(0));
+
+            float mouseX = (float) (xPos.get(0) * fbW / (double) windowW);
+            float mouseY = (float) (yPos.get(0) * fbH / (double) windowH);
+
+            int w = fbW;
+            int h = fbH;
 
             // Calculate grid coordinates
             float[] res = this.resolveGridCoordinates(mouseX, mouseY, w, h);
@@ -253,9 +260,23 @@ public class InputHandler {
      * @param newWidth  New window width
      * @param newHeight New window height
      */
-    private void onWindowResize(int newWidth, int newHeight) {
-        this.camera.onResize(newWidth, newHeight);
-        glViewport(0, 0, newWidth, newHeight);
+    private void onWindowResize(int _newWidth, int _newHeight) {
+        // Create buffers
+        IntBuffer fbW = BufferUtils.createIntBuffer(1);
+        IntBuffer fbH = BufferUtils.createIntBuffer(1);
+
+        // Fetch frameBuffer data
+        glfwGetFramebufferSize(this.windowHandle, fbW, fbH);
+
+        int w = fbW.get(0);
+        int h = fbH.get(0);
+
+        if (w <= 0 || h <= 0)
+            return;
+
+        // Set new viewport size
+        this.camera.onResize(w, h);
+        glViewport(0, 0, w, h);
     }
 
     /**
@@ -273,55 +294,44 @@ public class InputHandler {
         float ndcX = (mouseX / w) * 2.0f - 1.0f;
         float ndcY = 1.0f - (mouseY / h) * 2.0f;
 
-        Vector3f ndcRay = new Vector3f(ndcX, ndcY, 1.0f);
-
-        logger.debug("Converting mouse coordinates to ray");
-        logger.debug("ndcRay = {}", ndcRay.toString(NumberFormat.getNumberInstance()));
-
-        // Clip space ray
-        Vector4f rayClip = new Vector4f(ndcX, ndcY, 0.0f, 1.0f);
-
-        logger.debug("rayClip = {}", rayClip.toString(NumberFormat.getNumberInstance()));
-
-        // Turn clip space ray to eye space by multiplying it with inversed projection
-        // matrix
-        Vector4f rayEye = new Matrix4f(this.camera.getProjectionMatrix()).invert().transform(rayClip);
-        rayEye = new Vector4f(rayEye.x, rayEye.y, 1.0f, 0.0f);
-
-        logger.debug("rayEye = {}", rayEye.toString(NumberFormat.getNumberInstance()));
-
-        // World space conversion
-        Vector4f rayWorld = new Matrix4f(this.camera.getViewMatrix()).invert().transform(rayEye);
-
-        logger.debug("rayWorld = {}", rayWorld.toString(NumberFormat.getNumberInstance()));
-
-        // Actual ray direction
+        // https://antongerdelan.net/opengl/raycasting.html
+        Matrix4f invProj = new Matrix4f(this.camera.getProjectionMatrix()).invert();
+        Vector4f nearEye = invProj.transform(new Vector4f(ndcX, ndcY, -1.0f, 1.0f));
+        Vector4f farEye = invProj.transform(new Vector4f(ndcX, ndcY, 1.0f, 1.0f));
+        nearEye.div(nearEye.w());
+        farEye.div(farEye.w());
+        Vector3f dirEye = new Vector3f(farEye.x, farEye.y, farEye.z).sub(nearEye.x, nearEye.y, nearEye.z)
+                .normalize();
+        Vector4f rayWorld = new Matrix4f(this.camera.getViewMatrix()).invert()
+                .transform(new Vector4f(dirEye.x, dirEye.y, dirEye.z, 0.0f));
         Vector3f rayDirection = rayWorld.xyz(new Vector3f()).normalize();
-
-        logger.debug("rayDirection = {}\n", rayDirection.toString(NumberFormat.getNumberInstance()));
 
         float dist = Constants.CAMERA_FAR_PLANE;
         Vector3f camPos = this.camera.getPosition();
 
-        // Use ray marching to find the intersection between ray and terrain
-        for (float n = 0; n < dist; n += Math.max(1.0f, n * 0.01f)) {
-            // Calculate current ray point in world space
+        /*
+         * Ray march through the terrain to find the intersection point.
+         * Step size scales with distance to avoid tunneling close to the camera.
+         */
+        final float minStep = Constants.WORLD_SCALE * 0.25f;
+        for (float n = 0; n < dist; n += Math.max(minStep, n * 0.01f)) {
             float worldX = camPos.x + rayDirection.x * n;
             float worldY = camPos.y + rayDirection.y * n;
             float worldZ = camPos.z + rayDirection.z * n;
 
-            // Convert world space to grid position
+            // Convert world position to heightmap grid coordinates
             int gridX = (int) Math.floor(worldX / Constants.WORLD_SCALE);
             int gridZ = (int) Math.floor(worldZ / Constants.WORLD_SCALE);
 
-            // Bounds check
-            if (gridZ >= 0 && gridZ < this.heightMap.getHeight() && gridX >= 0 && gridX < this.heightMap.getWidth()) {
-                float gridY = this.heightMap.getElevation(gridX, gridZ);
+            if (!this.heightMap.isLogicalOnGrid(gridX, gridZ))
+                continue;
 
-                if (worldY <= gridY) {
-                    logger.debug("Intersection found at: {}, {}, {}", gridX, gridY, gridZ);
-                    return new float[] { gridX, gridZ };
-                }
+            // Use bilinear interpolation for smoother surface height sampling
+            float surfaceY = this.heightMap.interpolateElevation(worldX, worldZ);
+            if (worldY <= surfaceY) {
+                float gridY = this.heightMap.getElevation(gridX, gridZ);
+                logger.debug("Intersection found at: {}, {}, {}", gridX, gridY, gridZ);
+                return new float[] { gridX, gridZ };
             }
         }
 

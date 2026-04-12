@@ -1,6 +1,7 @@
 package terrain;
 
 import rendering.Camera;
+import rendering.Renderer;
 
 import java.util.ArrayList;
 import java.util.HashMap;

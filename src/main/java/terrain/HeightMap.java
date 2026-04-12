@@ -2,7 +2,9 @@ package terrain;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.joml.Math.lerp;
 
+import application.Constants;
 import exceptions.HeightMapParseException;
 
 /**
@@ -90,6 +92,59 @@ public class HeightMap {
         arrayZ = Math.max(0, Math.min(arrayZ, this.height - 1));
 
         return this.data[arrayZ][arrayX];
+    }
+
+    /**
+     * Returns whether the given logical grid coordinates fall within the heightmap
+     * bounds without clamping. (0, 0) is in the middle of the screen instead of
+     * top-left.
+     *
+     * @param logicalX Logical grid X coordinate
+     * @param logicalZ Logical grid Z coordinate
+     * @return {@code true} if the coordinates are within bounds, {@code false}
+     *         otherwise
+     */
+    public boolean isLogicalOnGrid(int logicalX, int logicalZ) {
+        int arrayX = logicalX + (this.width / 2);
+        int arrayZ = logicalZ + (this.height / 2);
+        return arrayX >= 0 && arrayX < this.width && arrayZ >= 0 && arrayZ < this.height;
+    }
+
+    /**
+     * Returns the interpolated elevation at the given world coordinates using
+     * bilinear interpolation between the four surrounding heightmap vertices.
+     *
+     * @param worldX World X coordinate
+     * @param worldZ World Z coordinate
+     * @return Interpolated elevation
+     * @see <a href=
+     *      "https://en.wikipedia.org/wiki/Bilinear_interpolation">Wikipedia -
+     *      Bilinear Interpolation</a>
+     */
+    public float interpolateElevation(float worldX, float worldZ) {
+        // Convert world coordinates to grid coordinates
+        float gridX = worldX / Constants.WORLD_SCALE;
+        float gridZ = worldZ / Constants.WORLD_SCALE;
+
+        // Grid cell origin
+        int cellX = (int) Math.floor(gridX);
+        int cellZ = (int) Math.floor(gridZ);
+
+        // Offset values within the grid
+        float offsetX = gridX - cellX;
+        float offsetZ = gridZ - cellZ;
+
+        // Sample the four corners of the grid cell
+        float bottomLeft = getElevation(cellX, cellZ);
+        float bottomRight = getElevation(cellX + 1, cellZ);
+        float topLeft = getElevation(cellX, cellZ + 1);
+        float topRight = getElevation(cellX + 1, cellZ + 1);
+
+        // Bilinear interpolation
+        return lerp(
+                lerp(bottomLeft, bottomRight, offsetX),
+                lerp(topLeft, topRight, offsetX),
+                offsetZ);
     }
 
     /**

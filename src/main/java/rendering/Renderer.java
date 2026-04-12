@@ -1,5 +1,6 @@
 package rendering;
 
+import application.Application;
 import application.Window;
 import pathfinding.AStar;
 import terrain.Chunk;
@@ -62,7 +63,7 @@ public class Renderer {
 
     /**
      * Initializes the shader program. Must be called after OpenGL context
-     * is created and before first call to {@link #render(float)}!
+     * is created and before first call to {@link #render}!
      */
     public void init() {
         this.shader = new Shader("/chunk.vert", "/chunk.frag");

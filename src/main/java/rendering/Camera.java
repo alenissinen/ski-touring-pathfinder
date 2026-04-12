@@ -100,8 +100,8 @@ public class Camera {
     /**
      * Updates camera position based on keyboard input and elapsed time.
      *
-     * @param pressedKeys  Set of currently pressed keys
-     * @param deltaSeconds Time since last update in seconds
+     * @param pressedKeys Set of currently pressed keys
+     * @param deltaTime   Time since last update in seconds
      */
     public void update(Set<Integer> pressedKeys, float deltaTime) {
         if (pressedKeys.isEmpty())
@@ -176,7 +176,7 @@ public class Camera {
             return;
 
         // TODO: add mouse sensitivity
-        this.yaw = (this.yaw + (float) deltaX * 0.5f) % 360.0f;
+        this.yaw = (this.yaw - (float) deltaX * 0.5f) % 360.0f;
         if (this.yaw < 0)
             this.yaw += 360.0f;
 
@@ -270,7 +270,7 @@ public class Camera {
      * Called when camera moves or rotates.
      */
     private void updateViewMatrix() {
-        this.viewMatrix = new Matrix4f().lookAtLH(this.position, new Vector3f(this.position).add(this.front),
+        this.viewMatrix = new Matrix4f().lookAt(this.position, new Vector3f(this.position).add(this.front),
                 this.up);
     }
 
@@ -279,7 +279,7 @@ public class Camera {
      * is quite self explanatory: it adds perspective).
      */
     private void updateProjectionMatrix() {
-        this.projectionMatrix = new Matrix4f().perspectiveLH(
+        this.projectionMatrix = new Matrix4f().perspective(
                 (float) Math.toRadians(this.fov),
                 this.aspectRatio,
                 1f,

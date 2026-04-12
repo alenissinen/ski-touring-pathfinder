@@ -47,4 +47,6 @@ https://www.researchgate.net/publication283787554_Method_for_Measuring_the_Infor
 https://www.cs.cornell.edu/courses/cs3410/2024fa/notes/bitpack.html  
 https://minecraft.wiki/w/Java_Edition_protocol/Data_types  
 https://github.com/SilverTiger/lwjgl3-tutorial/wiki/Input  
-https://antongerdelan.net/opengl/raycasting.html
+https://antongerdelan.net/opengl/raycasting.html  
+https://en.wikipedia.org/wiki/Bilinear_interpolation  
+https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/interpolation/bilinear-filtering.html
