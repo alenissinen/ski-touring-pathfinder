@@ -43,6 +43,9 @@ public class Application {
     /** Input handler */
     private InputHandler inputHandler;
 
+    /** A* instance */
+    private AStar aStar;
+
     /**
      * Constructor to create new application
      * 
@@ -118,9 +121,10 @@ public class Application {
 
         ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
 
-        AStar aStar = new AStar(merged);
-        this.renderer = new Renderer(camera, chunkManager, aStar, this.window);
-        this.inputHandler = new InputHandler(this.window.getHandle(), camera, merged, aStar, this.renderer.getShader());
+        this.aStar = new AStar(merged);
+        this.renderer = new Renderer(camera, chunkManager, this.aStar, this.window, merged);
+        this.inputHandler = new InputHandler(this.window.getHandle(), camera, merged, this.aStar,
+                this.renderer.getShader());
 
         logger.info("Modules instantiated");
     }
@@ -161,8 +165,16 @@ public class Application {
 
             if (deltaTime >= targetFrameTime) {
                 lastTime = now;
+
+                // Run multiple iterations each frame
+                for (int n = 0; n < Constants.ASTAR_ITERATIONS; n++) {
+                    if (aStar.isRunning()) {
+                        aStar.step();
+                    }
+                }
+
                 this.renderer.getCamera().update(this.inputHandler.getPressedKeys(), (float) deltaTime);
-                renderer.render();
+                this.renderer.render();
                 glfwSwapBuffers(window.getHandle());
             }
         }

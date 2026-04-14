@@ -142,15 +142,15 @@ public class Camera {
         }
 
         if (right) {
-            mx -= this.scratch.x * step;
-            my -= this.scratch.y * step;
-            mz -= this.scratch.z * step;
-        }
-
-        if (left) {
             mx += this.scratch.x * step;
             my += this.scratch.y * step;
             mz += this.scratch.z * step;
+        }
+
+        if (left) {
+            mx -= this.scratch.x * step;
+            my -= this.scratch.y * step;
+            mz -= this.scratch.z * step;
         }
 
         if (up)

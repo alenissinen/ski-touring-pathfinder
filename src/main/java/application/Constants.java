@@ -27,4 +27,17 @@ public class Constants {
      * or distant chunks clip out while still loaded.
      */
     public static final float CAMERA_FAR_PLANE = 50_000f;
+
+    /** How many A* iterations to run each frame */
+    public static final int ASTAR_ITERATIONS = 1000;
+
+    /**
+     * Slope angle threshold in degrees, everything above this has a penalty applied
+     */
+    public static final float SLOPE_THRESHOLD = 27.5f;
+
+    /**
+     * Cost multiplier applied to steps where slope exceeds {@link #SLOPE_THRESHOLD}
+     */
+    public static final float SLOPE_PENALTY = 3.5f;
 }

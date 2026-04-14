@@ -237,7 +237,6 @@ public class HeightMap {
         double rise_run = Math.sqrt(dzdx * dzdx + dzdy * dzdy);
         double slope_degrees = Math.toDegrees(Math.atan(rise_run));
 
-        logger.info("Slope angle at ({}, {}) calculated: {}", x, z, slope_degrees);
         return slope_degrees;
     }
 

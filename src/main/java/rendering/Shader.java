@@ -123,7 +123,17 @@ public class Shader implements AutoCloseable {
     public void setFloat(String name, float value) {
         int location = glGetUniformLocation(this.programId, name);
         glUniform1f(location, value);
+    }
 
+    /**
+     * Sets a {@code int} uniform.
+     * 
+     * @param name  Name of the uniform value in the shader
+     * @param value integer value to set
+     */
+    public void setInt(String name, int value) {
+        int location = glGetUniformLocation(this.programId, name);
+        glUniform1i(location, value);
     }
 
     /**

@@ -17,7 +17,7 @@ public class Main {
                 .major(4)
                 .minor(1) // macOS doesn't officially support 4.6
                 .renderDistance(24)
-                .movementSpeed(200)
+                .movementSpeed(250)
                 .build();
 
         logger.info(config.toString());

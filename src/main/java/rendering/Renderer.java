@@ -3,10 +3,14 @@ package rendering;
 import application.Application;
 import application.Window;
 import pathfinding.AStar;
+import pathfinding.Node;
 import terrain.Chunk;
 import terrain.ChunkManager;
+import terrain.HeightMap;
 
 import static org.lwjgl.opengl.GL11.*;
+
+import java.util.List;
 
 import org.joml.Matrix4f;
 import org.slf4j.Logger;
@@ -40,6 +44,15 @@ public class Renderer {
     /** Window instance */
     private final Window window;
 
+    /** Height map instance */
+    private final HeightMap heightMap;
+
+    /**
+     * OpenGL texture to store nodes in current path (uniform values aren't suitable
+     * for this much data)
+     */
+    private Texture visitedTex;
+
     /**
      * Create static model matrix for now since the grid is already in world
      * coordinates this is not needed for now.
@@ -53,11 +66,12 @@ public class Renderer {
      * @param chunkManager Chunk manager providing visible terrain chunks
      * @param aStar        A* instance for current path
      */
-    public Renderer(Camera camera, ChunkManager chunkManager, AStar aStar, Window window) {
+    public Renderer(Camera camera, ChunkManager chunkManager, AStar aStar, Window window, HeightMap heightMap) {
         this.camera = camera;
         this.chunkManager = chunkManager;
         this.aStar = aStar;
         this.window = window;
+        this.heightMap = heightMap;
         this.init();
     }
 
@@ -67,6 +81,7 @@ public class Renderer {
      */
     public void init() {
         this.shader = new Shader("/chunk.vert", "/chunk.frag");
+        this.visitedTex = new Texture(this.heightMap.getWidth(), heightMap.getHeight());
         this.camera.setMouseMode(this.window.getHandle());
         logger.info("Renderer initiated and shader program created");
     }
@@ -85,16 +100,21 @@ public class Renderer {
         Matrix4f MVP = this.buildMVP(model);
         this.shader.setMat4("uMVP", MVP);
 
-        var heightMap = this.chunkManager.getHeightMap();
+        HeightMap heightMap = this.chunkManager.getHeightMap();
         this.shader.setFloat("uElevationMin", heightMap.getDataMinElevation());
         this.shader.setFloat("uElevationMax", heightMap.getDataMaxElevation());
 
-        // Clear framebuffer
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        renderTerrain();
+        // Render A*
         renderPath();
 
-        // Unbind shader program
+        // Clear framebuffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Render terrain
+        renderTerrain();
+
+        // Unbind programs
+        this.visitedTex.unbind();
         this.shader.unbind();
     }
 
@@ -108,9 +128,43 @@ public class Renderer {
     }
 
     /**
-     * Renders the current path provided by {@link AStar#getPath()}.
+     * Renders the current A* iterator stage
      */
     private void renderPath() {
+        int width = this.heightMap.getWidth() / 2;
+        int height = this.heightMap.getHeight() / 2;
+
+        // Update visted texture if A* iterator is active
+        if (this.aStar.isRunning()) {
+            this.visitedTex.clear();
+            for (Node node : this.aStar.getUnModifiableOpenSet()) {
+                int texX = (int) node.getX() + width;
+                int texZ = (int) node.getZ() + height;
+
+                // Set texel color to 1.0 (used for A* stage detection in fragment shader)
+                this.visitedTex.setTexel(texX, texZ, (byte) 255);
+            }
+
+            this.visitedTex.upload();
+        } else if (!this.aStar.isRunning() && this.aStar.getPath() != null) {
+            // Render completed path
+            List<Node> path = this.aStar.getPath();
+            this.visitedTex.clear();
+
+            for (Node node : path) {
+                int texX = (int) node.getX() + width;
+                int texZ = (int) node.getZ() + height;
+
+                // Set texel color to ~0.5 (used for A* stage detection in fragment shader)
+                this.visitedTex.setTexel(texX, texZ, (byte) 127);
+            }
+
+            this.visitedTex.upload();
+        }
+
+        // Bind visited texture to pos 1 and set uniform
+        this.visitedTex.bind(1);
+        this.shader.setInt("uVisitedTex", 1);
     }
 
     /**
@@ -131,6 +185,11 @@ public class Renderer {
      * Called by {@link Application#cleanUp()} on shutdown.
      */
     public void cleanUp() {
+        if (this.visitedTex != null) {
+            this.visitedTex.dispose();
+            logger.info("Renderer texture resources cleaned up");
+        }
+
         if (this.shader != null) {
             this.shader.dispose();
             logger.info("Renderer shader resources cleaned up");

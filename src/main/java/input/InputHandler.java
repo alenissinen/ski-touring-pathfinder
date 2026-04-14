@@ -7,6 +7,7 @@ import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 import java.text.NumberFormat;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.joml.Matrix4f;
@@ -21,6 +22,7 @@ import static org.lwjgl.opengl.GL11C.glViewport;
 import application.Constants;
 import application.MouseMode;
 import pathfinding.AStar;
+import pathfinding.Node;
 import rendering.Camera;
 import rendering.Shader;
 import terrain.HeightMap;
@@ -243,8 +245,11 @@ public class InputHandler {
                 this.goalZ = res[1];
                 this.startSelected = false;
 
-                logger.debug("Pathfinding started | start = ({}, {}), goal = ({}, {})", this.startX, this.startZ,
+                logger.debug("Starting pathfinding | start = ({}, {}), goal = ({}, {})", this.startX, this.startZ,
                         this.goalX, this.goalZ);
+
+                // Initialize the A* iterator
+                this.aStar.init(this.startX, this.startZ, this.goalX, this.goalZ);
             }
 
             this.shader.bind();
