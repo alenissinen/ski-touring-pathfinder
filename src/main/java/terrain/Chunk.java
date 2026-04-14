@@ -23,8 +23,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 /**
  * Represents a {@code CHUNK_SIZE}×{@code CHUNK_SIZE} cell region of the active
@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  */
 public class Chunk implements AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(Chunk.class);
+    // private static final Logger logger = LoggerFactory.getLogger(Chunk.class);
 
     /** Reference to the full heightmap */
     private final HeightMap heightMap;

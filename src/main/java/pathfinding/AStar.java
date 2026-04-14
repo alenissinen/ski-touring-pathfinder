@@ -13,8 +13,6 @@ import java.util.PriorityQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import application.Constants;
-
 /**
  * Finds the optimal skinning route between two points on the terrain using
  * A* pathfinding algorithm. Stores the resulting path after calculation.

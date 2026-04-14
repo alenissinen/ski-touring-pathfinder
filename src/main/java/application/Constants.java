@@ -40,4 +40,7 @@ public class Constants {
      * Cost multiplier applied to steps where slope exceeds {@link #SLOPE_THRESHOLD}
      */
     public static final float SLOPE_PENALTY = 3.5f;
+
+    /** How many lines each file parser thread handles */
+    public static final int FILE_CHUNK_SIZE = 100;
 }

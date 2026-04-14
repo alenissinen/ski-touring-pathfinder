@@ -2,12 +2,9 @@ package input;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-import java.nio.Buffer;
 import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
-import java.text.NumberFormat;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.joml.Matrix4f;
@@ -22,7 +19,6 @@ import static org.lwjgl.opengl.GL11C.glViewport;
 import application.Constants;
 import application.MouseMode;
 import pathfinding.AStar;
-import pathfinding.Node;
 import rendering.Camera;
 import rendering.Shader;
 import terrain.HeightMap;

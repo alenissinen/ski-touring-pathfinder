@@ -12,6 +12,7 @@ import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import application.Constants;
 import exceptions.HeightMapParseException;
 
 public class HeightMapParser {
@@ -19,9 +20,6 @@ public class HeightMapParser {
 
     /** ASCII file path */
     private final String filePath;
-
-    /** How many lines each thread handles */
-    private static final int FILE_CHUNK_SIZE = 100;
 
     /**
      * Construct new height map parser
@@ -32,6 +30,16 @@ public class HeightMapParser {
         this.filePath = filePath;
     }
 
+    /**
+     * Parses a height map file from specified {@code filePath}.
+     * The file is read in chunks and each chunk gets assigned its own virtual
+     * thread to parse the values. Chunk size is assigned by
+     * {@link Constants#FILE_CHUNK_SIZE}.
+     * 
+     * @return {@link HeightMap} instance
+     * @throws HeightMapParseException if the file is missing, header value is
+     *                                 informed or parsing fails
+     */
     public HeightMap parse() throws HeightMapParseException {
         InputStream in = HeightMap.class.getResourceAsStream(filePath);
 
@@ -55,9 +63,9 @@ public class HeightMapParser {
             List<Future<?>> tasks = new ArrayList<>();
 
             // Read rows and divide to parts
-            for (int row = 0; row < height; row += FILE_CHUNK_SIZE) {
+            for (int row = 0; row < height; row += Constants.FILE_CHUNK_SIZE) {
                 final int firstRow = row;
-                final int lastRow = Math.min(row + FILE_CHUNK_SIZE, height);
+                final int lastRow = Math.min(row + Constants.FILE_CHUNK_SIZE, height);
 
                 // Read chunks to memory
                 String[] lines = new String[lastRow - firstRow];
@@ -78,7 +86,10 @@ public class HeightMapParser {
             // Wait for each future to complete
             for (Future<?> task : tasks) {
                 task.get();
-                logger.info("HeightMapParser ({}) task ({}) status: {}", this.filePath, task.hashCode(), task.state());
+                if (task.isCancelled()) {
+                    logger.error("Height map ({}) parser virtual thread failed", this.filePath);
+                    throw new HeightMapParseException("Parser virtual thread cancelled", task.exceptionNow(), filePath);
+                }
             }
 
             logger.info("Height map parsing complete: {}x{}", width, height);
@@ -106,6 +117,8 @@ public class HeightMapParser {
     /**
      * Parses a single line from ASCII height map file and returns the header value
      * as type T
+     * 
+     * @return Parsed header value
      */
     private static <T> T parseHeader(String line, java.util.function.Function<String, T> parser, String filePath)
             throws HeightMapParseException {
