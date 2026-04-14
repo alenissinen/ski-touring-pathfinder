@@ -1,6 +1,7 @@
 package pathfinding;
 
 import terrain.HeightMap;
+import application.Constants;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -95,7 +96,6 @@ public class AStar {
      * @param startZ Grid Z coordinate of the start point
      * @param goalX  Grid X coordinate of the goal point
      * @param goalZ  Grid Z coordinate of the goal point
-     * @return Ordered list of {@link Node} objects from start to goal
      */
     public void init(float startX, float startZ, float goalX, float goalZ) {
         // Reset variables
@@ -189,8 +189,9 @@ public class AStar {
 
     /**
      * Calculates {@code g} cost of moving from a node to its neighbor.
-     * Slopes exceeding {@link #SLOPE_THRESHOLD} receive an additional multiplier
-     * {@link #SLOPE_PENALTY}.
+     * Slopes exceeding {@link Constants#SLOPE_THRESHOLD} receive an additional
+     * multiplier
+     * {@link Constants#SLOPE_PENALTY}.
      *
      * @param current    The node being evaluated
      * @param neighbour  The neighbor node being evaluated
@@ -222,8 +223,7 @@ public class AStar {
      * Uses Euclidean distance.
      *
      * @param node  The node to calculate distance from
-     * @param goalX Grid X coordinate of the goal
-     * @param goalZ Grid Z coordinate of the goal
+     * @param other The node to calculate distance to
      * @return Euclidean distance from {@code node} to the goal
      */
     private float calculateH(Node node, Node other) {
@@ -272,7 +272,7 @@ public class AStar {
     }
 
     /**
-     * Returns the current path found by {@link #findPath}.
+     * Returns the current path.
      * 
      * @return Ordered list of {@link Node} objects, or {@code null} if no path
      *         exists

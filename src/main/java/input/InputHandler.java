@@ -131,8 +131,8 @@ public class InputHandler {
 
         logger.info("GLFW key callback set");
 
-        glfwSetWindowSizeCallback(this.windowHandle, (_window, newWidth, newHeight) -> {
-            this.onWindowResize(newWidth, newHeight);
+        glfwSetWindowSizeCallback(this.windowHandle, (_window, _newWidth, _newHeight) -> {
+            this.onWindowResize();
         });
 
         logger.info("GLFW window size callback set");
@@ -261,11 +261,8 @@ public class InputHandler {
     /**
      * Handles window resizing to calculate new projection matrix and updates the
      * viewport
-     * 
-     * @param newWidth  New window width
-     * @param newHeight New window height
      */
-    private void onWindowResize(int _newWidth, int _newHeight) {
+    private void onWindowResize() {
         // Create buffers
         IntBuffer fbW = BufferUtils.createIntBuffer(1);
         IntBuffer fbH = BufferUtils.createIntBuffer(1);
