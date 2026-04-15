@@ -19,6 +19,7 @@ import rendering.Camera;
 import rendering.Renderer;
 import terrain.ChunkManager;
 import terrain.HeightMap;
+import ui.ImGuiLayer;
 
 /**
  * Main application class responsible for the program lifecycle. Manages
@@ -46,6 +47,9 @@ public class Application {
     /** A* instance */
     private AStar aStar;
 
+    /** ImGui instance */
+    private ImGuiLayer imGuiLayer;
+
     /**
      * Constructor to create new application
      * 
@@ -62,15 +66,15 @@ public class Application {
     public void run() {
         // Initialize GLFW and start render loop
         try {
-            init();
+            this.init();
         } catch (HeightMapParseException | IllegalStateException e) {
             e.printStackTrace();
         }
 
-        loop();
+        this.loop();
 
         // Clean resources before shutting down
-        cleanUp();
+        this.cleanUp();
     }
 
     /**

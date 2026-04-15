@@ -10,11 +10,13 @@
     <packaging>jar</packaging>
 
     <properties>
+        <launcherFlag></launcherFlag>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lwjgl.version>3.4.1</lwjgl.version>
         <lwjgl.natives>natives-windows</lwjgl.natives>
+        <imgui.java.version>1.86.11</imgui.java.version>
     </properties>
 
     <profiles>
@@ -40,6 +42,7 @@
                                 <argument>-cp</argument>
                                 <classpath />
                                 <argument>Main</argument>
+                                <argument>${launcherFlag}</argument>
                             </arguments>
                         </configuration>
                     </plugin>
@@ -71,6 +74,7 @@
                                 <argument>-cp</argument>
                                 <classpath />
                                 <argument>Main</argument>
+                                <argument>${launcherFlag}</argument>
                             </arguments>
                         </configuration>
                     </plugin>
@@ -102,6 +106,7 @@
                                 <argument>-cp</argument>
                                 <classpath />
                                 <argument>Main</argument>
+                                <argument>${launcherFlag}</argument>
                             </arguments>
                         </configuration>
                     </plugin>
@@ -228,6 +233,21 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.5.32</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-binding</artifactId>
+            <version>${imgui.java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-lwjgl3</artifactId>
+            <version>${imgui.java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-natives-windows</artifactId>
+            <version>${imgui.java.version}</version>
         </dependency>
     </dependencies>
 

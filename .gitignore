@@ -5,3 +5,4 @@ docs/
 dependency-reduced-pom.xml
 .classpath
 .project
+imgui.ini

@@ -68,7 +68,7 @@ public class Window {
         // Make the window visible
         glfwShowWindow(window);
 
-        logger.info("Window created and shown");
+        logger.info("Window created");
     }
 
     /**
