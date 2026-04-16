@@ -127,7 +127,8 @@ public class Application {
 
         ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
 
-        this.imGuiLayer = new ImGuiLayer(this.window.getHandle());
+        this.imGuiLayer = new ImGuiLayer(this.window.getHandle(), this.config.getWidth() / 4,
+                this.config.getHeight() / 4, this.config.getTargetFps());
         this.imGuiLayer.init();
 
         this.aStar = new AStar(merged);
@@ -186,8 +187,9 @@ public class Application {
                 this.renderer.render();
 
                 // ImGui must be drawn last since it overrides the depth buffer
+                this.imGuiLayer.setFPS(1.0f / (float) deltaTime);
                 this.imGuiLayer.newFrame();
-                this.imGuiLayer.drawUI(this.config.getWidth() / 4, this.config.getHeight() / 4);
+                this.imGuiLayer.drawUI();
                 this.imGuiLayer.endFrame();
 
                 glfwSwapBuffers(window.getHandle());

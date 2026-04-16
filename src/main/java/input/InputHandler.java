@@ -18,6 +18,7 @@ import static org.lwjgl.opengl.GL11C.glViewport;
 
 import application.Constants;
 import application.MouseMode;
+import imgui.ImGui;
 import pathfinding.AStar;
 import rendering.Camera;
 import rendering.Shader;
@@ -201,6 +202,10 @@ public class InputHandler {
     private void onMouseClick(int button, int action) {
         // logger.debug("{}, {}, {}", this.camera.getMouseMode(), button, action);
         if (this.camera.getMouseMode() == MouseMode.FLIGHT)
+            return;
+
+        // Ignore if ImGui wants to capture the mouse input
+        if (ImGui.getIO().getWantCaptureMouse())
             return;
 
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {

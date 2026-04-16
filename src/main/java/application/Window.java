@@ -65,6 +65,8 @@ public class Window {
             glfwSetInputMode(this.window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
         }
 
+        glfwSwapInterval(0);
+
         // Make the window visible
         glfwShowWindow(window);
 
