@@ -1,33 +1,44 @@
 package application;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import terrain.HeightMap;
+
 /**
  * Stores application configuration settings such as window properties and
  * OpenGL version.
  */
 public class Config {
     /** Window title */
-    private String title = "Example";
+    private String title;
 
     /** Window width */
-    private int width = 1280;
+    private int width;
 
     /** Window height */
-    private int height = 720;
+    private int height;
 
     /** Application target fps */
-    private int targetFps = 60;
+    private int targetFps;
 
     /** OpenGL major version (4 in 4.6) */
-    private int openGlMajor = 3;
+    private int openGlMajor;
 
     /** OpenGL minor version (6 in 4.6) */
-    private int openGlMinor = 3;
+    private int openGlMinor;
 
     /** Render distanche in chunk units */
-    private int renderDistance = 8;
+    private int renderDistance;
 
     /** Movement speed */
-    private float movementSpeed = 100.0f;
+    private float movementSpeed;
+
+    /** Fov */
+    private float fov;
+
+    /** Height maps */
+    private HeightMap heightMap;
 
     /**
      * Private constructor, use {@link Builder} to create a configuration
@@ -92,6 +103,61 @@ public class Config {
     }
 
     /**
+     * @return Height map
+     */
+    public HeightMap getHeightMap() {
+        return heightMap;
+    }
+
+    /**
+     * @return Field of view
+     */
+    public float getFov() {
+        return fov;
+    }
+
+    // Setters for builder
+    private void setTitle(String title) {
+        this.title = title;
+    }
+
+    private void setWidth(int width) {
+        this.width = width;
+    }
+
+    private void setHeight(int height) {
+        this.height = height;
+    }
+
+    private void setTargetFps(int targetFps) {
+        this.targetFps = targetFps;
+    }
+
+    private void setOpenGlMajor(int openGlMajor) {
+        this.openGlMajor = openGlMajor;
+    }
+
+    private void setOpenGlMinor(int openGlMinor) {
+        this.openGlMinor = openGlMinor;
+    }
+
+    private void setRenderDistance(int renderDistance) {
+        this.renderDistance = renderDistance;
+    }
+
+    private void setMovementSpeed(float movementSpeed) {
+        this.movementSpeed = movementSpeed;
+    }
+
+    private void setFov(float fov) {
+        this.fov = fov;
+    }
+
+    private void setHeightMap(HeightMap heightMap) {
+        this.heightMap = heightMap;
+    }
+
+    /**
      * Builder for constructing a {@link Config} instance
      *
      * <pre>{@code
@@ -103,14 +169,16 @@ public class Config {
      * }</pre>
      */
     public static class Builder {
-        private String title;
-        private int width;
-        private int height;
-        private int targetFps;
-        private int openGlMajor;
-        private int openGlMinor;
-        private int renderDistance;
-        private float movementSpeed;
+        private String title = "Example";
+        private int width = 1280;
+        private int height = 720;
+        private int targetFps = 60;
+        private int openGlMajor = 4;
+        private int openGlMinor = 1;
+        private int renderDistance = 8;
+        private float movementSpeed = 100.0f;
+        private float fov = 70.0f;
+        private HeightMap heightMap = null;
 
         /**
          * Sets the window title
@@ -201,20 +269,44 @@ public class Config {
         }
 
         /**
+         * Sets the field of view
+         * 
+         * @param fov Field of view in degrees
+         * @return Current {@link Builder} instance
+         */
+        public Builder fov(float fov) {
+            this.fov = fov;
+            return this;
+        }
+
+        /**
+         * Sets the height map
+         * 
+         * @param heightMap List of height maps to use
+         * @return Current {@link Builder} instance
+         */
+        public Builder heightMap(HeightMap heightMap) {
+            this.heightMap = heightMap;
+            return this;
+        }
+
+        /**
          * Builds and returns a {@link Config} instance
          * 
          * @return Configured {@link Config} object
          */
         public Config build() {
             Config config = new Config();
-            config.title = this.title;
-            config.width = this.width;
-            config.height = this.height;
-            config.targetFps = this.targetFps;
-            config.openGlMajor = this.openGlMajor;
-            config.openGlMinor = this.openGlMinor;
-            config.renderDistance = this.renderDistance;
-            config.movementSpeed = this.movementSpeed;
+            config.setTitle(this.title);
+            config.setWidth(this.width);
+            config.setHeight(this.height);
+            config.setTargetFps(this.targetFps);
+            config.setOpenGlMajor(this.openGlMajor);
+            config.setOpenGlMinor(this.openGlMinor);
+            config.setRenderDistance(this.renderDistance);
+            config.setMovementSpeed(this.movementSpeed);
+            config.setFov(this.fov);
+            config.setHeightMap(this.heightMap);
 
             return config;
         }
@@ -229,6 +321,8 @@ public class Config {
                 "\n  openGlVersion  = " + openGlMajor + "." + openGlMinor +
                 "\n  renderDistance = " + renderDistance + " chunks" +
                 "\n  movementSpeed  = " + movementSpeed + "m/s" +
+                "\n  fov            = " + fov + " degrees" +
+                "\n  heightMap      = " + heightMap.toString() +
                 "\n}";
     }
 }

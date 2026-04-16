@@ -99,16 +99,12 @@ public class Application {
 
         GL.createCapabilities();
 
-        // Create north and south height maps and merge them
-        HeightMap north = HeightMap.fromAsciiFile("/T5311B.asc");
-        HeightMap south = HeightMap.fromAsciiFile("/T5311A.asc");
-        HeightMap merged = HeightMap.merge(north, south);
-
         logger.info("Height maps created and merged");
 
+        HeightMap merged = this.config.getHeightMap();
         float spawnY = merged.getElevation(0, 0) + 40.0f;
 
-        Camera camera = new Camera(new Vector3f(0, spawnY, 0), 60f,
+        Camera camera = new Camera(new Vector3f(0, spawnY, 0), this.config.getFov(),
                 (float) this.config.getWidth() / this.config.getHeight(), this.config.getMovementSpeed());
 
         // Set initial viewport size

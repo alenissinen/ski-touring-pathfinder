@@ -98,7 +98,7 @@ public class ImGuiLayer {
             this.firstFrame = false;
         }
 
-        ImGui.begin("Settings");
+        ImGui.begin("Info");
 
         this.drawFpsPlot();
 

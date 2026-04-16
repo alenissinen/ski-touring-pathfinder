@@ -1,6 +1,8 @@
 package terrain;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -39,14 +41,11 @@ public class HeightMapParser {
      * @return {@link HeightMap} instance
      * @throws HeightMapParseException if the file is missing, header value is
      *                                 informed or parsing fails
+     * @throws HeightMapParseException If the parser fails
+     * @throws FileNotFoundException   If the file is not found
      */
-    public HeightMap parse() throws HeightMapParseException {
-        InputStream in = HeightMap.class.getResourceAsStream(filePath);
-
-        if (in == null) {
-            logger.error("File not found: {}", filePath);
-            throw new HeightMapParseException("File not found", filePath);
-        }
+    public HeightMap parse() throws HeightMapParseException, FileNotFoundException {
+        InputStream in = new FileInputStream(filePath);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in));
                 var executor = Executors.newVirtualThreadPerTaskExecutor()) {

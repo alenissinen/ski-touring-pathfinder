@@ -4,6 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.joml.Math.lerp;
 
+import java.io.FileNotFoundException;
+import java.util.List;
+
 import application.Constants;
 import exceptions.HeightMapParseException;
 
@@ -60,7 +63,7 @@ public class HeightMap {
         this.yLL = yLL;
         this.cellSize = cellSize;
 
-        logger.info("Height map instantiated: width {}, height {}\n\txLL {}, yLL {}, cellSize {}", width, height, xLL,
+        logger.info("Height map instantiated: width {}, height {}, xLL {}, yLL {}, cellSize {}", width, height, xLL,
                 yLL, cellSize);
     }
 
@@ -70,7 +73,7 @@ public class HeightMap {
      * @param filePath Path of the ASCII height map
      * @return HeightMap object of a height map
      */
-    public static HeightMap fromAsciiFile(String filePath) throws HeightMapParseException {
+    public static HeightMap fromAsciiFile(String filePath) throws HeightMapParseException, FileNotFoundException {
         HeightMapParser parser = new HeightMapParser(filePath);
         return parser.parse();
     }
@@ -240,39 +243,89 @@ public class HeightMap {
         return slope_degrees;
     }
 
-    /** Merges two heightmaps which share the same xllcorner value */
-    public static HeightMap merge(HeightMap north, HeightMap south) throws IllegalArgumentException {
-        // Height maps cant be of different width
-        if (north.width != south.width) {
-            logger.error("Grid column amount mismatch");
-            throw new IllegalArgumentException("Grid column amount mismatch");
+    /**
+     * Merges multiple heightmaps which neighbour each other in some way
+     *
+     * @param maps List of height maps to merge
+     * @return Merged height map
+     */
+    public static HeightMap merge(List<HeightMap> maps) throws IllegalArgumentException {
+        // Check for empty list or list with only 1 map
+        if (maps == null || maps.isEmpty()) {
+            throw new IllegalArgumentException("Height map list cant be empty");
+        } else if (maps.size() == 1) {
+            return maps.get(0);
         }
 
-        // Cell size must be the same for proper visualization
-        if (north.cellSize != south.cellSize) {
-            logger.error("Grid cell size mismatch");
-            throw new IllegalArgumentException("Grid cell size mismatch");
+        // Validate cell size and find bounds
+        double cellSize = maps.get(0).cellSize;
+        double minX = Double.MAX_VALUE;
+        double maxX = -Double.MAX_VALUE;
+        double minY = Double.MAX_VALUE;
+        double maxY = -Double.MAX_VALUE;
+
+        long totalPixels = 0;
+
+        for (HeightMap hm : maps) {
+            if (hm.cellSize != cellSize) {
+                throw new IllegalArgumentException("Grid cell size mismatch");
+            }
+
+            minX = Math.min(minX, hm.xLL);
+            minY = Math.min(minY, hm.yLL);
+
+            // Calculate the top-right corner of this specific tile
+            double tileMaxX = hm.xLL + (hm.width * cellSize);
+            double tileMaxY = hm.yLL + (hm.height * cellSize);
+
+            maxX = Math.max(maxX, tileMaxX);
+            maxY = Math.max(maxY, tileMaxY);
+
+            totalPixels += (long) hm.width * hm.height;
         }
 
-        int width = north.width;
-        int height = north.height + south.height;
-        double cellSize = north.cellSize;
-        double xLL = north.xLL; // Both grids share the same xllcorner value
-        double yLL = south.yLL; // Merged grid must use the yllcorner value of southern grid
+        // Calculate dimensions
+        int totalWidth = (int) Math.round((maxX - minX) / cellSize);
+        int totalHeight = (int) Math.round((maxY - minY) / cellSize);
 
-        float[][] data = new float[height][width];
-
-        // Copy north grid into merged grid
-        for (int n = 0; n < north.height; n++) {
-            System.arraycopy(north.data[n], 0, data[n], 0, north.width);
+        // If the total area of the tiles doesn't match the bounding box area, there's a
+        // gap or overlap
+        if (totalPixels != (long) totalWidth * totalHeight) {
+            logger.error("HeightMap merge failed: Gaps or overlaps detected in the provided tiles.");
+            throw new IllegalArgumentException("The provided heightmaps do not form a perfect gapless rectangle.");
         }
 
-        // Copy south grid into merged grid
-        for (int n = 0; n < south.height; n++) {
-            System.arraycopy(south.data[n], 0, data[north.height + n], 0, south.width);
+        // Merged data array and tracker array
+        float[][] data = new float[totalHeight][totalWidth];
+        boolean[][] filled = new boolean[totalHeight][totalWidth];
+
+        // Copy data
+        for (HeightMap hm : maps) {
+            // Calculate pixel offsets
+            int colOffset = (int) Math.round((hm.xLL - minX) / cellSize);
+
+            // Distance from the northern most row
+            int rowOffset = (int) Math.round((maxY - (hm.yLL + (hm.height * cellSize))) / cellSize);
+
+            for (int r = 0; r < hm.height; r++) {
+                int targetRow = rowOffset + r;
+
+                // Safety check for alignment
+                if (filled[targetRow][colOffset]) {
+                    throw new IllegalArgumentException("Overlap detected at row " + targetRow + " col " + colOffset);
+                }
+
+                System.arraycopy(hm.data[r], 0, data[targetRow], colOffset, hm.width);
+
+                // Mark as filled
+                for (int c = 0; c < hm.width; c++) {
+                    filled[targetRow][colOffset + c] = true;
+                }
+            }
         }
 
-        logger.info("Height maps merged");
-        return new HeightMap(data, width, height, xLL, yLL, cellSize);
+        logger.info("Successfully merged {} heightmaps into a {}x{} grid", maps.size(), totalWidth, totalHeight);
+
+        return new HeightMap(data, totalWidth, totalHeight, minX, minY, cellSize);
     }
 }
