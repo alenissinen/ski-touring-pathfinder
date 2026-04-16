@@ -51,4 +51,5 @@ https://antongerdelan.net/opengl/raycasting.html
 https://en.wikipedia.org/wiki/Bilinear_interpolation  
 https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/interpolation/bilinear-filtering.html  
 https://learnopengl.com/Getting-started/Textures  
-https://github.com/mattdesl/lwjgl-basics/wiki/textures
+https://github.com/mattdesl/lwjgl-basics/wiki/textures  
+https://github.com/ocornut/imgui/wiki

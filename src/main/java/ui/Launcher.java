@@ -1,17 +1,16 @@
 package ui;
 
 import application.Config;
-
+import application.Window;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
-import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11C.*;
 
-import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
 
 /**
  * Initial launcher for the application, shows only ImGui with temporary window
@@ -19,8 +18,8 @@ import org.lwjgl.glfw.GLFWVidMode;
 public class Launcher {
     private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
-    /** GLFW window handle */
-    private long window;
+    /** Window instance */
+    private Window window;
 
     /** Actual config which is used to launch application */
     private Config resultConfig = null;
@@ -47,33 +46,24 @@ public class Launcher {
     }
 
     /** Initializes GLFW window and ImGui */
-    private void init() {
-        if (!glfwInit())
-            throw new IllegalStateException("GLFW failed");
+    private void init() throws IllegalStateException {
+        // Initialize GLFW
+        if (!glfwInit()) {
+            logger.error("Failed to initialize GLFW");
+            throw new IllegalStateException("Unable to initialize GLFW");
+        }
 
-        // Create small window
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-        window = glfwCreateWindow(600, 400, "Pathfinder Launcher", 0, 0);
+        // Create window
+        this.window = new Window(
+                new Config.Builder().title("Configuration").width(600).height(400).major(4).minor(1).build());
+        this.window.create();
 
-        // Show window
-        glfwMakeContextCurrent(this.window);
         GL.createCapabilities();
-        glfwShowWindow(this.window);
-
-        // Get the resolution of the primary monitor
-        GLFWVidMode monitorRes = glfwGetVideoMode(glfwGetPrimaryMonitor());
-
-        // Center the window
-        glfwSetWindowPos(
-                window,
-                (monitorRes.width() - 600) / 2,
-                ((monitorRes.height() - 400) / 2));
 
         logger.info("Launcher window created");
 
         // Initialize ImGui
-        this.ui = new ImGuiLayer(this.window);
+        this.ui = new ImGuiLayer(this.window.getHandle());
         this.ui.init();
 
         logger.info("Launcher ImGui context created");
@@ -81,7 +71,7 @@ public class Launcher {
 
     /** Renders the launcher window and ImGui value sliders */
     private void loop() {
-        while (!glfwWindowShouldClose(window) && !shouldLaunch) {
+        while (!glfwWindowShouldClose(this.window.getHandle()) && !this.shouldLaunch) {
             glfwPollEvents();
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -116,14 +106,14 @@ public class Launcher {
 
             ImGui.end();
             this.ui.endFrame();
-            glfwSwapBuffers(this.window);
+            glfwSwapBuffers(this.window.getHandle());
         }
     }
 
     /** Destroys launcher, but keeps the glfw context so it can be reused */
     private void cleanup() {
         this.ui.destroy();
-        glfwDestroyWindow(this.window);
+        glfwDestroyWindow(this.window.getHandle());
         logger.info("Launcher destroyed");
     }
 }

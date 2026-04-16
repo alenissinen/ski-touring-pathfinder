@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <launcherFlag></launcherFlag>
+        <flags></flags>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,7 +42,7 @@
                                 <argument>-cp</argument>
                                 <classpath />
                                 <argument>Main</argument>
-                                <argument>${launcherFlag}</argument>
+                                <argument>${flags}</argument>
                             </arguments>
                         </configuration>
                     </plugin>
@@ -74,7 +74,7 @@
                                 <argument>-cp</argument>
                                 <classpath />
                                 <argument>Main</argument>
-                                <argument>${launcherFlag}</argument>
+                                <argument>${flags}</argument>
                             </arguments>
                         </configuration>
                     </plugin>
@@ -106,7 +106,7 @@
                                 <argument>-cp</argument>
                                 <classpath />
                                 <argument>Main</argument>
-                                <argument>${launcherFlag}</argument>
+                                <argument>${flags}</argument>
                             </arguments>
                         </configuration>
                     </plugin>

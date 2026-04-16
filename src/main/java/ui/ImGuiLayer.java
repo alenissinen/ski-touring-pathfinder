@@ -46,6 +46,19 @@ public class ImGuiLayer {
         logger.info("ImGui initialized");
     }
 
+    /**
+     * Draws the application user interface
+     * 
+     * @param width  UI width in pixels
+     * @param height UI height in pixels
+     */
+    public void drawUI(float width, float height) {
+        ImGui.begin("Settings");
+        ImGui.setWindowSize(width, height);
+        ImGui.setWindowPos(0, 0);
+        ImGui.end();
+    }
+
     /** Begins new ImGui frame */
     public void newFrame() {
         ImGuiGLFW.newFrame();

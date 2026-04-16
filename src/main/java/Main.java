@@ -1,14 +1,18 @@
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import application.Application;
 import application.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ui.Launcher;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) {
+        // Split the first string in args because when using one maven property, all
+        // arguments are stored in one string
+        if (args.length > 0)
+            args = args[0].split(" ");
+
         // Launch app without launcher using default/development config
         if (args.length > 0 && args[0].equals("--noLauncher")) {
             // Create application config

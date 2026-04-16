@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import exceptions.HeightMapParseException;
+import imgui.ImGui;
+import imgui.flag.ImGuiWindowFlags;
 import input.InputHandler;
 import pathfinding.AStar;
 import rendering.Camera;
@@ -125,6 +127,9 @@ public class Application {
 
         ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
 
+        this.imGuiLayer = new ImGuiLayer(this.window.getHandle());
+        this.imGuiLayer.init();
+
         this.aStar = new AStar(merged);
         this.renderer = new Renderer(camera, chunkManager, this.aStar, this.window, merged);
         this.inputHandler = new InputHandler(this.window.getHandle(), camera, merged, this.aStar,
@@ -179,6 +184,12 @@ public class Application {
 
                 this.renderer.getCamera().update(this.inputHandler.getPressedKeys(), (float) deltaTime);
                 this.renderer.render();
+
+                // ImGui must be drawn last since it overrides the depth buffer
+                this.imGuiLayer.newFrame();
+                this.imGuiLayer.drawUI(this.config.getWidth() / 4, this.config.getHeight() / 4);
+                this.imGuiLayer.endFrame();
+
                 glfwSwapBuffers(window.getHandle());
             }
         }

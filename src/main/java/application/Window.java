@@ -80,9 +80,9 @@ public class Window {
 
         // Center the window
         glfwSetWindowPos(
-                window,
-                (monitorRes.width() - config.getWidth()) / 2,
-                ((monitorRes.height() - config.getHeight()) / 2));
+                this.window,
+                (monitorRes.width() - this.config.getWidth()) / 2,
+                ((monitorRes.height() - this.config.getHeight()) / 2));
 
         logger.info("Window centered");
     }
