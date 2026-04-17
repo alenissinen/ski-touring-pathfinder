@@ -4,7 +4,6 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11C.*;
 
 import java.nio.IntBuffer;
-import java.util.List;
 
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -16,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import exceptions.HeightMapParseException;
 import input.InputHandler;
 import pathfinding.AStar;
-import pathfinding.Node;
 import rendering.Camera;
 import rendering.Renderer;
 import terrain.ChunkManager;
@@ -124,7 +122,9 @@ public class Application {
         ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
 
         this.imGuiLayer = new ImGuiLayer(this.window.getHandle(), this.config.getWidth() / 4,
-                this.config.getHeight() / 4, this.config.getTargetFps());
+                this.config.getHeight() / 2, this.config.getTargetFps(), merged.getDataMinElevation(),
+                merged.getDataMaxElevation());
+
         this.imGuiLayer.init();
         this.imGuiLayer.setCellSize((float) merged.getCellSize());
 
@@ -162,6 +162,9 @@ public class Application {
         // Keep track of the last time when something was rendered
         double lastTime = glfwGetTime();
 
+        // Has the path been set
+        boolean pathSet = false;
+
         // Run rendering loop until user closes the window
         while (!glfwWindowShouldClose(window.getHandle())) {
             // Always poll so input stays responsive while waiting for the next tick
@@ -180,6 +183,9 @@ public class Application {
                     }
                 }
 
+                if (this.aStar.isRunning() && pathSet)
+                    pathSet = false;
+
                 this.renderer.getCamera().update(this.inputHandler.getPressedKeys(), (float) deltaTime);
                 this.renderer.render();
 
@@ -188,7 +194,10 @@ public class Application {
                 this.imGuiLayer.newFrame();
 
                 // Update path info
-                this.imGuiLayer.setPathInfo(this.aStar.getPath());
+                if (!pathSet && !this.aStar.isRunning()) {
+                    this.imGuiLayer.setPath(this.aStar.getPath());
+                    pathSet = true;
+                }
 
                 this.imGuiLayer.drawUI();
                 this.imGuiLayer.endFrame();

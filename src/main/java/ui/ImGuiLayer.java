@@ -12,8 +12,10 @@ import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import pathfinding.Node;
 
+// TODO: refactor application ui logic to its own class
 /**
  * Handles ImGui layer on top of window and integrates it with OpenGL and GLFW.
+ * Also responsible for drawing the main application ui.
  */
 public class ImGuiLayer {
     private static final Logger logger = LoggerFactory.getLogger(ImGuiLayer.class);
@@ -53,14 +55,17 @@ public class ImGuiLayer {
     /** Current fps buffer index */
     private int fpsBufferIndex = 0;
 
-    /** Path length */
-    private float pathLength;
-
-    /** Path elevation gain */
-    private float pathElevGain;
+    /** Curret path */
+    private List<Node> path;
 
     /** Cell size */
     private float cellSize;
+
+    /** Height map min elevation */
+    private float minElev;
+
+    /** Height map max elevation */
+    private float maxElev;
 
     /**
      * Initalizes ImGuiLayer
@@ -78,12 +83,16 @@ public class ImGuiLayer {
      * @param width        UI width in pixels
      * @param height       UI height in pixels
      * @param maxFps       Maximum FPS value for the plot
+     * @param minElev      Minimum elevation
+     * @param maxElev      Maximum elevation
      */
-    public ImGuiLayer(long windowHandle, float width, float height, float maxFps) {
+    public ImGuiLayer(long windowHandle, float width, float height, float maxFps, float minElev, float maxElev) {
         this.windowHandle = windowHandle;
         this.width = width;
         this.height = height;
         this.maxFps = maxFps;
+        this.minElev = minElev;
+        this.maxElev = maxElev;
     }
 
     /** Initializes ImGui */
@@ -114,9 +123,31 @@ public class ImGuiLayer {
 
         this.drawFpsPlot();
 
-        if (!Float.isNaN(this.pathElevGain) && !Float.isNaN(this.pathLength)) {
-            ImGui.text("Current path length: " + this.pathLength * this.cellSize + "m");
-            ImGui.text("Elevation gain: " + this.pathElevGain + "m");
+        if (this.path != null) {
+            // Display important information of the path
+            float pathElevGain = this.elevationGain();
+            float pathLengthKm = path.size() * this.cellSize / 1000;
+
+            // Munter method
+            float minTime = ((pathElevGain / 100.0f) + pathLengthKm) / 5;
+            float maxTime = ((pathElevGain / 100.0f) + pathLengthKm) / 3;
+
+            ImGui.text("Current path length: " + pathLengthKm * 1000 + "m");
+            ImGui.text("Elevation gain: " + pathElevGain + "m");
+            ImGui.separator();
+            ImGui.text(String.format("Estimated time: %.2fh - %.2fh", minTime, maxTime));
+            ImGui.text(String.format("(%.0f - %.0f minutes)", minTime * 60, maxTime * 60));
+
+            // Plot elevation change on the route
+            float[] elevationBuffer = new float[this.path.size()];
+
+            for (int i = 0; i < this.path.size(); i++)
+                elevationBuffer[i] = this.path.get(i).getY();
+
+            ImGui.plotLines("", elevationBuffer, elevationBuffer.length, 0, "Elevation change",
+                    this.minElev - 10f,
+                    this.maxElev + 15f,
+                    this.width - 10, 80);
         }
 
         this.posX = ImGui.getWindowPosX();
@@ -138,21 +169,12 @@ public class ImGuiLayer {
     }
 
     /**
-     * Sets information of the current path (path length and elevation gain)
+     * Sets current path.
      * 
      * @param path Current route/path between two nodes
      */
-    public void setPathInfo(List<Node> path) {
-        // Reset info if path is null
-        if (path == null) {
-            this.pathElevGain = Float.NaN;
-            this.pathLength = Float.NaN;
-
-            return;
-        }
-
-        this.pathElevGain = path.get(path.size() - 1).getY() - path.get(0).getY();
-        this.pathLength = path.size();
+    public void setPath(List<Node> path) {
+        this.path = path;
     }
 
     /**
@@ -171,6 +193,21 @@ public class ImGuiLayer {
         ImGui.plotLines("", this.fpsBuffer, this.fpsBuffer.length, this.fpsBufferIndex,
                 String.format("FPS: %.1f", this.fpsBuffer[this.fpsBufferIndex]), 0.0f, this.maxFps, this.width - 10,
                 80);
+    }
+
+    /**
+     * Calculates total elevation gain
+     */
+    private float elevationGain() {
+        float totalGain = 0;
+
+        for (int i = 1; i < this.path.size(); i++) {
+            float delta = this.path.get(i).getY() - this.path.get(i - 1).getY();
+            if (delta > 0)
+                totalGain += delta;
+        }
+
+        return totalGain;
     }
 
     /** Begins new ImGui frame */
