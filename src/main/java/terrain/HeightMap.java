@@ -181,6 +181,13 @@ public class HeightMap {
     }
 
     /**
+     * @return Cell size
+     */
+    public double getCellSize() {
+        return this.cellSize;
+    }
+
+    /**
      * Computes minimum and maximum elevation values from the height map data. For
      * now used for shading in fragment shader.
      */

@@ -4,7 +4,6 @@ import exceptions.HeightMapParseException;
 import terrain.HeightMap;
 
 import java.io.FileNotFoundException;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

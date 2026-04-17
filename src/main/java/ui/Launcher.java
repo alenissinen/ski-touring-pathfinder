@@ -19,7 +19,6 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
@@ -57,9 +56,9 @@ public class Launcher {
 
     /** Opens the launcher */
     public Config open() {
-        init();
-        loop();
-        cleanup();
+        this.init();
+        this.loop();
+        this.cleanUp();
         return shouldLaunch ? resultConfig : null;
     }
 
@@ -198,9 +197,9 @@ public class Launcher {
                 ImGui.endDisabled();
             }
 
-            // Add tooltip below cursor to notify the user that app cant be launched
+            // Add tooltip below cursor to notify the user that app can't be launched
             if (!mapsLoaded && ImGui.isItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) {
-                ImGui.setNextWindowPos(ImGui.getMousePosX(), ImGui.getMousePosY() + 20);
+                ImGui.setNextWindowPos(ImGui.getMousePosX(), ImGui.getMousePosY() + 25);
                 ImGui.beginTooltip();
                 ImGui.text("You must load at least 1 height map!");
                 ImGui.endTooltip();
@@ -226,7 +225,7 @@ public class Launcher {
     }
 
     /** Destroys launcher, but keeps the glfw context so it can be reused */
-    private void cleanup() {
+    private void cleanUp() {
         this.ui.destroy();
         glfwDestroyWindow(this.window.getHandle());
         logger.info("Launcher destroyed");

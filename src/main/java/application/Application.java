@@ -4,6 +4,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11C.*;
 
 import java.nio.IntBuffer;
+import java.util.List;
 
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -13,10 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import exceptions.HeightMapParseException;
-import imgui.ImGui;
-import imgui.flag.ImGuiWindowFlags;
 import input.InputHandler;
 import pathfinding.AStar;
+import pathfinding.Node;
 import rendering.Camera;
 import rendering.Renderer;
 import terrain.ChunkManager;
@@ -126,6 +126,7 @@ public class Application {
         this.imGuiLayer = new ImGuiLayer(this.window.getHandle(), this.config.getWidth() / 4,
                 this.config.getHeight() / 4, this.config.getTargetFps());
         this.imGuiLayer.init();
+        this.imGuiLayer.setCellSize((float) merged.getCellSize());
 
         this.aStar = new AStar(merged);
         this.renderer = new Renderer(camera, chunkManager, this.aStar, this.window, merged);
@@ -185,6 +186,10 @@ public class Application {
                 // ImGui must be drawn last since it overrides the depth buffer
                 this.imGuiLayer.setFPS(1.0f / (float) deltaTime);
                 this.imGuiLayer.newFrame();
+
+                // Update path info
+                this.imGuiLayer.setPathInfo(this.aStar.getPath());
+
                 this.imGuiLayer.drawUI();
                 this.imGuiLayer.endFrame();
 

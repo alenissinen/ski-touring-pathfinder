@@ -106,6 +106,9 @@ public class AStar {
         Node start = new Node(startX, startZ);
         this.goalNode = new Node(goalX, goalZ);
 
+        // Set elevation value for start node
+        start.setElevation(this.heightMap.getElevation((int) startX, (int) startZ));
+
         start.setCosts(0f, calculateH(start, goalNode));
         openSet.add(start);
         openSetContains.add(packKey(startX, startZ));
@@ -127,6 +130,11 @@ public class AStar {
 
         // Check if current node is the goal
         if (this.currentNode.getX() == this.goalNode.getX() && this.currentNode.getZ() == this.goalNode.getZ()) {
+            // Set goal node elevation for elevation gain calculation
+            this.currentNode
+                    .setElevation(
+                            this.heightMap.getElevation((int) this.currentNode.getX(), (int) this.currentNode.getZ()));
+
             this.path = this.reconstructPath(this.currentNode);
             logger.debug("Path found: nodes = {}, openSet.size() = {}, closedSet.size() = {}",
                     path.size(), openSet.size(), closedSet.size());

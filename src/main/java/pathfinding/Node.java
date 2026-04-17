@@ -31,6 +31,9 @@ public class Node implements Comparable<Node> {
     /** Grid Z coordinate of this node */
     private final float z;
 
+    /** Grid Y coordinate (elevation) */
+    private float y;
+
     /** Slope angle in degrees at current grid position */
     private float slopeAngle = -1.0f;
 
@@ -69,6 +72,13 @@ public class Node implements Comparable<Node> {
      */
     public float getZ() {
         return this.z;
+    }
+
+    /**
+     * @return Grid Y coordinate
+     */
+    public float getY() {
+        return this.y;
     }
 
     /**
@@ -130,6 +140,13 @@ public class Node implements Comparable<Node> {
      */
     public void setParent(Node parent) {
         this.parent = parent;
+    }
+
+    /**
+     * @param elevation Elevation at this node
+     */
+    public void setElevation(float elevation) {
+        this.y = elevation;
     }
 
     /**

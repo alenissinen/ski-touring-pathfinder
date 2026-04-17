@@ -1,5 +1,7 @@
 package ui;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,6 +10,7 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
+import pathfinding.Node;
 
 /**
  * Handles ImGui layer on top of window and integrates it with OpenGL and GLFW.
@@ -49,6 +52,15 @@ public class ImGuiLayer {
 
     /** Current fps buffer index */
     private int fpsBufferIndex = 0;
+
+    /** Path length */
+    private float pathLength;
+
+    /** Path elevation gain */
+    private float pathElevGain;
+
+    /** Cell size */
+    private float cellSize;
 
     /**
      * Initalizes ImGuiLayer
@@ -102,6 +114,11 @@ public class ImGuiLayer {
 
         this.drawFpsPlot();
 
+        if (!Float.isNaN(this.pathElevGain) && !Float.isNaN(this.pathLength)) {
+            ImGui.text("Current path length: " + this.pathLength * this.cellSize + "m");
+            ImGui.text("Elevation gain: " + this.pathElevGain + "m");
+        }
+
         this.posX = ImGui.getWindowPosX();
         this.posY = ImGui.getWindowPosY();
         this.width = ImGui.getWindowWidth();
@@ -118,6 +135,33 @@ public class ImGuiLayer {
     public void setFPS(float fps) {
         this.fpsBuffer[this.fpsBufferIndex] = fps;
         this.fpsBufferIndex = (this.fpsBufferIndex + 1) % this.fpsBuffer.length;
+    }
+
+    /**
+     * Sets information of the current path (path length and elevation gain)
+     * 
+     * @param path Current route/path between two nodes
+     */
+    public void setPathInfo(List<Node> path) {
+        // Reset info if path is null
+        if (path == null) {
+            this.pathElevGain = Float.NaN;
+            this.pathLength = Float.NaN;
+
+            return;
+        }
+
+        this.pathElevGain = path.get(path.size() - 1).getY() - path.get(0).getY();
+        this.pathLength = path.size();
+    }
+
+    /**
+     * Sets current height map cell size for path length calculation
+     * 
+     * @param cellSize Height map cell size value
+     */
+    public void setCellSize(float cellSize) {
+        this.cellSize = cellSize;
     }
 
     /**
