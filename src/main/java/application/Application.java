@@ -2,6 +2,7 @@ package application;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11C.*;
+import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 
 import java.nio.IntBuffer;
 
@@ -121,17 +122,16 @@ public class Application {
 
         ChunkManager chunkManager = new ChunkManager(merged, config.getRenderDistance());
 
-        this.imGuiLayer = new ImGuiLayer(this.window.getHandle(), this.config.getWidth() / 4,
-                this.config.getHeight() / 2, this.config.getTargetFps(), merged.getDataMinElevation(),
-                merged.getDataMaxElevation());
-
-        this.imGuiLayer.init();
-        this.imGuiLayer.setCellSize((float) merged.getCellSize());
-
         this.aStar = new AStar(merged);
         this.renderer = new Renderer(camera, chunkManager, this.aStar, this.window, merged);
         this.inputHandler = new InputHandler(this.window.getHandle(), camera, merged, this.aStar,
                 this.renderer.getShader());
+        this.imGuiLayer = new ImGuiLayer(this.window.getHandle(), this.config.getWidth() / 4,
+                this.config.getHeight() / 2, this.config.getTargetFps(), merged.getDataMinElevation(),
+                merged.getDataMaxElevation(), this.renderer);
+
+        this.imGuiLayer.init();
+        this.imGuiLayer.setCellSize((float) merged.getCellSize());
 
         logger.info("Modules instantiated");
     }
@@ -155,6 +155,7 @@ public class Application {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glEnable(GL_MULTISAMPLE);
 
         // Convert target fps to target frametime
         float targetFrameTime = 1.0f / config.getTargetFps();

@@ -1,6 +1,7 @@
 package rendering;
 
 import application.Application;
+import application.RenderMode;
 import application.Window;
 import pathfinding.AStar;
 import pathfinding.Node;
@@ -53,11 +54,17 @@ public class Renderer {
      */
     private Texture visitedTex;
 
+    /** Pre-computed slope-angle heatmap texture */
+    private Texture heatmapTex;
+
     /**
      * Create static model matrix for now since the grid is already in world
      * coordinates this is not needed for now.
      */
     private static final Matrix4f model = new Matrix4f().identity();
+
+    /** Rendering mode */
+    private RenderMode renderMode = RenderMode.NORMAL;
 
     /**
      * Constructs a new {@code Renderer}.
@@ -81,9 +88,51 @@ public class Renderer {
      */
     public void init() {
         this.shader = new Shader("/chunk.vert", "/chunk.frag");
-        this.visitedTex = new Texture(this.heightMap.getWidth(), heightMap.getHeight());
+        this.visitedTex = new Texture(this.heightMap.getWidth(), this.heightMap.getHeight());
+        this.heatmapTex = new Texture(this.heightMap.getWidth(), this.heightMap.getHeight());
+        this.buildHeatmapTexture();
         this.camera.setMouseMode(this.window.getHandle());
         logger.info("Renderer initiated and shader program created");
+    }
+
+    /**
+     * Computes slope angles for every cell in the heightmap and stores them
+     * into the heatmap texture: 0 = green (<25°), 85 = yellow (25-35°),
+     * 170 = red (35-45°), 255 = black (>45°).
+     */
+    private void buildHeatmapTexture() {
+        // Calculate coordinates
+        int w = this.heightMap.getWidth();
+        int h = this.heightMap.getHeight();
+        int halfW = w / 2;
+        int halfH = h / 2;
+
+        // Clear the texture buffer
+        this.heatmapTex.clear();
+
+        for (int z = 0; z < h; z++) {
+            for (int x = 0; x < w; x++) {
+                int logicalX = x - halfW;
+                int logicalZ = z - halfH;
+                double angle = this.heightMap.getSlopeAngle(logicalX, logicalZ);
+
+                // Store the slope angle in the texture
+                byte value;
+                if (angle < 25.0)
+                    value = (byte) 0;
+                else if (angle < 35.0)
+                    value = (byte) 85;
+                else if (angle < 45.0)
+                    value = (byte) 170;
+                else
+                    value = (byte) 255;
+
+                this.heatmapTex.setTexel(x, z, value);
+            }
+        }
+
+        this.heatmapTex.upload();
+        logger.info("Heatmap texture built");
     }
 
     /**
@@ -107,6 +156,10 @@ public class Renderer {
         // Render A*
         renderPath();
 
+        // Bind heatmap texture to pos 2
+        this.heatmapTex.bind(2);
+        this.shader.setInt("uHeatmapTex", 2);
+
         // Clear framebuffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -115,6 +168,7 @@ public class Renderer {
 
         // Unbind programs
         this.visitedTex.unbind();
+        this.heatmapTex.unbind();
         this.shader.unbind();
     }
 
@@ -122,6 +176,10 @@ public class Renderer {
      * Renders all visible terrain chunks provided by {@link ChunkManager}.
      */
     private void renderTerrain() {
+        // Set render mode uniform value to inform the fragment shader how the terrain
+        // should be rendered
+        this.shader.setInt("uRenderMode", this.renderMode.ordinal());
+
         for (Chunk chunk : this.chunkManager.getLoadedChunks()) {
             chunk.render();
         }
@@ -141,8 +199,8 @@ public class Renderer {
                 int texX = (int) node.getX() + width;
                 int texZ = (int) node.getZ() + height;
 
-                // Set texel color to 1.0 (used for A* stage detection in fragment shader)
-                this.visitedTex.setTexel(texX, texZ, (byte) 255);
+                // Set texel color to ~0.33 (used for A* stage detection in fragment shader)
+                this.visitedTex.setTexel(texX, texZ, (byte) 85);
             }
 
             this.visitedTex.upload();
@@ -155,8 +213,8 @@ public class Renderer {
                 int texX = (int) node.getX() + width;
                 int texZ = (int) node.getZ() + height;
 
-                // Set texel color to ~0.5 (used for A* stage detection in fragment shader)
-                this.visitedTex.setTexel(texX, texZ, (byte) 127);
+                // Set texel color to 1.0 (used for A* stage detection in fragment shader)
+                this.visitedTex.setTexel(texX, texZ, (byte) 255);
             }
 
             this.visitedTex.upload();
@@ -187,7 +245,12 @@ public class Renderer {
     public void cleanUp() {
         if (this.visitedTex != null) {
             this.visitedTex.dispose();
-            logger.info("Renderer texture resources cleaned up");
+            logger.info("Visited texture cleaned up");
+        }
+
+        if (this.heatmapTex != null) {
+            this.heatmapTex.dispose();
+            logger.info("Heatmap texture cleaned up");
         }
 
         if (this.shader != null) {
@@ -208,5 +271,14 @@ public class Renderer {
      */
     public Shader getShader() {
         return this.shader;
+    }
+
+    /**
+     * Sets active render mode
+     * 
+     * @param mode Which render mode to use
+     */
+    public void setRenderMode(RenderMode mode) {
+        this.renderMode = mode;
     }
 }

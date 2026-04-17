@@ -1,16 +1,20 @@
 package ui;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import application.RenderMode;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
+import imgui.type.ImInt;
 import pathfinding.Node;
+import rendering.Renderer;
 
 // TODO: refactor application ui logic to its own class
 /**
@@ -67,6 +71,15 @@ public class ImGuiLayer {
     /** Height map max elevation */
     private float maxElev;
 
+    /** Renderer instance */
+    private Renderer renderer;
+
+    /** Selected rendering mode */
+    private ImInt selected = new ImInt(0);
+
+    /** Store rendering mode names as strings */
+    private static final String[] modes = Arrays.stream(RenderMode.values()).map(Enum::name).toArray(String[]::new);
+
     /**
      * Initalizes ImGuiLayer
      * 
@@ -86,13 +99,15 @@ public class ImGuiLayer {
      * @param minElev      Minimum elevation
      * @param maxElev      Maximum elevation
      */
-    public ImGuiLayer(long windowHandle, float width, float height, float maxFps, float minElev, float maxElev) {
+    public ImGuiLayer(long windowHandle, float width, float height, float maxFps, float minElev, float maxElev,
+            Renderer renderer) {
         this.windowHandle = windowHandle;
         this.width = width;
         this.height = height;
         this.maxFps = maxFps;
         this.minElev = minElev;
         this.maxElev = maxElev;
+        this.renderer = renderer;
     }
 
     /** Initializes ImGui */
@@ -150,6 +165,13 @@ public class ImGuiLayer {
                     this.width - 10, 80);
         }
 
+        // List all modes
+        if (ImGui.combo("Render mode", this.selected, ImGuiLayer.modes)) {
+            // Update render mode based on index
+            this.renderer.setRenderMode(RenderMode.values()[this.selected.get()]);
+        }
+
+        // Update position variables
         this.posX = ImGui.getWindowPosX();
         this.posY = ImGui.getWindowPosY();
         this.width = ImGui.getWindowWidth();

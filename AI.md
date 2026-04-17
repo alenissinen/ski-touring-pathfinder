@@ -2,7 +2,7 @@
 
 Can you analyze the current stage and features of my project, and based on that give me 10 new features I should implement?
 
-Malli: Claude Code (Opus 4.7 High)
+Malli: Claude Code (Opus 4.7 High 1M)
 
 # Vastaus
 

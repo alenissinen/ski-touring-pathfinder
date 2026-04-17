@@ -47,6 +47,7 @@ public class Window {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, config.getOpenGlMinor()); // Set OpenGL minor version
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Force modern API and remove deprecated
                                                                        // features
+        glfwWindowHint(GLFW_SAMPLES, 4); // 4x MSAA
 
         // Create window (NULL is just 0L but used for clarity)
         window = glfwCreateWindow(config.getWidth(), config.getHeight(), config.getTitle(), NULL, NULL);
