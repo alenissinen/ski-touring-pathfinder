@@ -46,12 +46,12 @@ public class Launcher {
     private List<String> mapNames = new ArrayList<>();
 
     // Settings the user edits
-    private int[] renderDist = { 24 };
+    private int[] renderDist = { 12 };
     private int[] moveSpeed = { 250 };
     private int[] width = { 1280 };
     private int[] height = { 720 };
-    private int[] fps = { 240 };
-    private float[] fov = { 70 };
+    private int[] fps = { 120 };
+    private float[] fov = { 60 };
     private List<HeightMap> maps = new ArrayList<>();
 
     /** Opens the launcher */

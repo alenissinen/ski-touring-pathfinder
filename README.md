@@ -53,4 +53,7 @@ https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/
 https://learnopengl.com/Getting-started/Textures  
 https://github.com/mattdesl/lwjgl-basics/wiki/textures  
 https://github.com/ocornut/imgui/wiki  
-https://muntercalculation.com/
+https://muntercalculation.com/  
+https://www.youtube.com/watch?v=bwq_y0zxpQM  
+https://en.wikipedia.org/wiki/Fresnel_equations  
+https://www.rastertek.com/gl4linuxtut10.html

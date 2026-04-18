@@ -298,8 +298,8 @@ public class HeightMap {
         // If the total area of the tiles doesn't match the bounding box area, there's a
         // gap or overlap
         if (totalPixels != (long) totalWidth * totalHeight) {
-            logger.error("HeightMap merge failed: Gaps or overlaps detected in the provided tiles.");
-            throw new IllegalArgumentException("The provided heightmaps do not form a perfect gapless rectangle.");
+            logger.error("HeightMap merge failed: Gaps or overlaps detected in the provided tiles");
+            throw new IllegalArgumentException("The provided heightmaps do not form a perfect gapless rectangle");
         }
 
         // Merged data array and tracker array

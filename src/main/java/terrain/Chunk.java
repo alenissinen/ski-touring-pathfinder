@@ -22,6 +22,7 @@ import static org.lwjgl.opengl.GL30C.glGenVertexArrays;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
@@ -182,6 +183,67 @@ public class Chunk implements AutoCloseable {
     }
 
     /**
+     * Calculates normal for each vertex for lightning calculation
+     * 
+     * @param vertices Vertex data
+     * @param indices  Index data
+     * @return Calculated normals
+     */
+    private float[] calculateNormals(float[] vertices, int[] indices) {
+        float[] normals = new float[vertices.length];
+
+        for (int i = 0; i < indices.length; i += 3) {
+            int index1 = indices[i];
+            int index2 = indices[i + 1];
+            int index3 = indices[i + 2];
+
+            // Extract position vectors
+            float v0x = vertices[index1 * 3];
+            float v0y = vertices[index1 * 3 + 1];
+            float v0z = vertices[index1 * 3 + 2];
+
+            float v1x = vertices[index2 * 3];
+            float v1y = vertices[index2 * 3 + 1];
+            float v1z = vertices[index2 * 3 + 2];
+
+            float v2x = vertices[index3 * 3];
+            float v2y = vertices[index3 * 3 + 1];
+            float v2z = vertices[index3 * 3 + 2];
+
+            // Create normal vector
+            Vector3f e1 = new Vector3f(v1x - v0x, v1y - v0y, v1z - v0z);
+            Vector3f e2 = new Vector3f(v2x - v0x, v2y - v0y, v2z - v0z);
+            Vector3f normal = e1.cross(e2);
+            normal.normalize();
+
+            // Store normal vector data
+            normals[index1 * 3] += normal.x;
+            normals[index1 * 3 + 1] += normal.y;
+            normals[index1 * 3 + 2] += normal.z;
+
+            normals[index2 * 3] += normal.x;
+            normals[index2 * 3 + 1] += normal.y;
+            normals[index2 * 3 + 2] += normal.z;
+
+            normals[index3 * 3] += normal.x;
+            normals[index3 * 3 + 1] += normal.y;
+            normals[index3 * 3 + 2] += normal.z;
+        }
+
+        // Normalize all the vertex normals
+        for (int i = 0; i < normals.length; i += 3) {
+            Vector3f vN = new Vector3f(normals[i], normals[i + 1], normals[i + 2]);
+            vN.normalize();
+
+            normals[i] = vN.x;
+            normals[i + 1] = vN.y;
+            normals[i + 2] = vN.z;
+        }
+
+        return normals;
+    }
+
+    /**
      * Generates mesh data from the heightmap and uploads it to the GPU.
      * Creates the VAO, VBO and EBO. Should be only called once!
      *
@@ -193,6 +255,7 @@ public class Chunk implements AutoCloseable {
     public void upload() {
         float[] vertexData = this.createVertexData();
         int[] indexData = this.createIndexData();
+        float[] normalData = this.calculateNormals(vertexData, indexData);
 
         this.vao = glGenVertexArrays();
         glBindVertexArray(this.vao);
@@ -204,6 +267,14 @@ public class Chunk implements AutoCloseable {
 
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
+
+        int normalVbo = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, normalVbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                (FloatBuffer) BufferUtils.createFloatBuffer(normalData.length).put(normalData).flip(), GL_STATIC_DRAW);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
+        glEnableVertexAttribArray(1);
 
         this.ebo = glGenBuffers();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.ebo);

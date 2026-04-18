@@ -12,7 +12,7 @@ public class Constants {
     public static final float WORLD_SCALE = 2.0f;
 
     /** Size of one chunk in grid units */
-    public static final int CHUNK_SIZE = 125;
+    public static final int CHUNK_SIZE = 100;
 
     /**
      * Vertices along one chunk edge: {@code CHUNK_SIZE + 1} so neighboring chunks

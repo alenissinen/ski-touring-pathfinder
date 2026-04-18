@@ -14,6 +14,7 @@ import static org.lwjgl.opengl.GL11.*;
 import java.util.List;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +67,12 @@ public class Renderer {
     /** Rendering mode */
     private RenderMode renderMode = RenderMode.NORMAL;
 
+    /** Sun azimuth angle */
+    private int sunAzimuth = 180;
+
+    /** Sun elevation angle */
+    private int sunElevation = 30;
+
     /**
      * Constructs a new {@code Renderer}.
      * 
@@ -97,8 +104,9 @@ public class Renderer {
 
     /**
      * Computes slope angles for every cell in the heightmap and stores them
-     * into the heatmap texture: 0 = green (<25°), 85 = yellow (25-35°),
-     * 170 = red (35-45°), 255 = black (>45°).
+     * into the heatmap texture: 0 = green (0-25 degrees), 85 = yellow (25-35
+     * degrees),
+     * 170 = red (35-45 degrees), 255 = black (45-inf degrees).
      */
     private void buildHeatmapTexture() {
         // Calculate coordinates
@@ -152,6 +160,22 @@ public class Renderer {
         HeightMap heightMap = this.chunkManager.getHeightMap();
         this.shader.setFloat("uElevationMin", heightMap.getDataMinElevation());
         this.shader.setFloat("uElevationMax", heightMap.getDataMaxElevation());
+
+        // Set lighting uniform, and calculate lighting direction from sun position
+        float azimuthRadians = (float) Math.toRadians(this.sunAzimuth);
+        float elevationRadians = (float) Math.toRadians(this.sunElevation);
+
+        // Convert spherical coordinates to cartesian
+        float x = (float) (Math.cos(elevationRadians) * Math.sin(azimuthRadians));
+        float y = (float) Math.sin(elevationRadians);
+        float z = (float) (Math.cos(elevationRadians) * Math.cos(azimuthRadians));
+
+        // Flip the vector so the direction is from surface to sky
+        Vector3f lighting = new Vector3f(x, y, z).normalize().mul(-1);
+        this.shader.setVec3("uLightPos", lighting);
+
+        // Set camera position uniform
+        this.shader.setVec3("uCameraPos", this.camera.getPosition());
 
         // Render A*
         renderPath();
@@ -280,5 +304,23 @@ public class Renderer {
      */
     public void setRenderMode(RenderMode mode) {
         this.renderMode = mode;
+    }
+
+    /**
+     * Sets sun azimuth degrees
+     * 
+     * @param azimuth Sun azimuth angle
+     */
+    public void setSunAzimuth(int azimuth) {
+        this.sunAzimuth = azimuth;
+    }
+
+    /**
+     * Sets sun elevation degrees
+     * 
+     * @param elevation Sun elevation angle
+     */
+    public void setSunElevation(int elevation) {
+        this.sunElevation = elevation;
     }
 }

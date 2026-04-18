@@ -80,6 +80,12 @@ public class ImGuiLayer {
     /** Store rendering mode names as strings */
     private static final String[] modes = Arrays.stream(RenderMode.values()).map(Enum::name).toArray(String[]::new);
 
+    /** Sun azimuth angle */
+    private int[] azimuth = { 180 };
+
+    /** Sun elevation angle */
+    private int[] elevation = { 30 };
+
     /**
      * Initalizes ImGuiLayer
      * 
@@ -170,6 +176,12 @@ public class ImGuiLayer {
             // Update render mode based on index
             this.renderer.setRenderMode(RenderMode.values()[this.selected.get()]);
         }
+
+        ImGui.sliderInt("Sun azimuth", this.azimuth, 0, 360);
+        ImGui.sliderInt("Sun elevation", this.elevation, 0, 180);
+
+        this.renderer.setSunAzimuth(this.azimuth[0]);
+        this.renderer.setSunElevation(this.elevation[0]);
 
         // Update position variables
         this.posX = ImGui.getWindowPosX();
