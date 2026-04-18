@@ -7,6 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import org.junit.jupiter.api.Test;
 
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+
+@Severity(SeverityLevel.CRITICAL)
 public class ConfigTest {
     @Test
     void build_defaults_returnsCorrectTitle() {
@@ -43,6 +47,7 @@ public class ConfigTest {
     }
 
     @Test
+    @Severity(SeverityLevel.NORMAL)
     void build_chaining_returnsSameBuilder() {
         Config.Builder builder = new Config.Builder();
         assertSame(builder, builder.fov(10f));

@@ -12,8 +12,11 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
 import terrain.HeightMap;
 
+@Severity(SeverityLevel.CRITICAL)
 public class AStarTest {
     private HeightMap flat;
     private AStar flatAStar;
@@ -125,6 +128,7 @@ public class AStarTest {
     }
 
     @Test
+    @Severity(SeverityLevel.MINOR)
     void getPath_flatTerrain_findsDiagonalPath() {
         this.flatAStar.init(-3, -3, 2, 2);
         this.runIterator(this.flatAStar, 10000);
@@ -134,6 +138,7 @@ public class AStarTest {
     }
 
     @Test
+    @Severity(SeverityLevel.MINOR)
     void getUnModifiableOpenSet_isUnmodifiable() {
         this.flatAStar.init(0, 0, 2, 2);
         assertThrows(UnsupportedOperationException.class,

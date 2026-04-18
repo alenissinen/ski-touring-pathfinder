@@ -12,7 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import exceptions.HeightMapParseException;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
 
+@Severity(SeverityLevel.BLOCKER)
 public class HeightMapParserTest {
     @TempDir
     Path tempDir;
@@ -67,12 +70,14 @@ public class HeightMapParserTest {
     }
 
     @Test
+    @Severity(SeverityLevel.MINOR)
     void parse_nonExistentFile_throwsFileNotFound() {
         HeightMapParser parser = new HeightMapParser("tempInvalid.asc");
         assertThrows(FileNotFoundException.class, () -> parser.parse());
     }
 
     @Test
+    @Severity(SeverityLevel.MINOR)
     void parse_badHeader_throwsHeightMapParse() throws IOException {
         Path file = this.writeAsciiMapFile("tempValid.asc", """
                 BADHEADER
@@ -92,6 +97,7 @@ public class HeightMapParserTest {
     }
 
     @Test
+    @Severity(SeverityLevel.MINOR)
     void parse_lessRowsThanHeader_throwsHeightMapParse() throws IOException {
         Path file = this.writeAsciiMapFile("tempValid.asc", """
                 ncols           3

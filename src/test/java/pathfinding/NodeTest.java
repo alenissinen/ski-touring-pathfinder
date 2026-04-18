@@ -7,6 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+
+@Severity(SeverityLevel.CRITICAL)
 public class NodeTest {
     @Test
     void constructor_setsCoordinates() {
@@ -122,6 +126,7 @@ public class NodeTest {
     }
 
     @Test
+    @Severity(SeverityLevel.MINOR)
     void toString_correctFormat() {
         Node node = new Node(1f, 1f);
         assertEquals("(1.0, 1.0)", node.toString());

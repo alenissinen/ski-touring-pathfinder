@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+
+@Severity(SeverityLevel.MINOR)
 public class ShaderExceptionTest {
 
     @Test

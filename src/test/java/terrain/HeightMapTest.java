@@ -7,6 +7,10 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+
+@Severity(SeverityLevel.CRITICAL)
 public class HeightMapTest {
     private HeightMap flat;
     private HeightMap slope;
@@ -122,16 +126,19 @@ public class HeightMapTest {
     }
 
     @Test
+    @Severity(SeverityLevel.NORMAL)
     void merge_null_throwsIllegalArgument() {
         assertThrows(IllegalArgumentException.class, () -> HeightMap.merge(null));
     }
 
     @Test
+    @Severity(SeverityLevel.NORMAL)
     void merge_empty_throwsIllegalArgument() {
         assertThrows(IllegalArgumentException.class, () -> HeightMap.merge(List.of()));
     }
 
     @Test
+    @Severity(SeverityLevel.NORMAL)
     void merge_oneMap_returnsSameInstance() {
         assertSame(this.flat, HeightMap.merge(List.of(this.flat)));
     }
@@ -153,6 +160,7 @@ public class HeightMapTest {
     }
 
     @Test
+    @Severity(SeverityLevel.NORMAL)
     void merge_differentCellSize_throwsIllegalArgument() {
         float[][] data = {
                 { 1, 2, 3 },
@@ -167,6 +175,7 @@ public class HeightMapTest {
     }
 
     @Test
+    @Severity(SeverityLevel.NORMAL)
     void merge_gap_throwsIllegalArgument() {
         float[][] data = {
                 { 1, 2, 3 },
