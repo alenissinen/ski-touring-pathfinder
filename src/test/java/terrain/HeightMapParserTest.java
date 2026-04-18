@@ -102,7 +102,7 @@ public class HeightMapParserTest {
         Path file = this.writeAsciiMapFile("tempValid.asc", """
                 ncols           3
                 nrows           3
-                xllcorner       122.000000
+                xllcorner       67.000000
                 yllcorner       165.000000
                 cellsize        2.00000000
                 NODATA_value    -9999.0000
