@@ -20,7 +20,7 @@ pages:
   dependencies:
     - test
   script:
-    - mvn clean package javadoc:javadoc -Dshow=private -DskipTests
+    - mvn package javadoc:javadoc -Dshow=private -DskipTests
     - mkdir -p public/docs
     - cp -r docs/apidocs/* public/docs/
     - curl -o allure.tgz -L https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
