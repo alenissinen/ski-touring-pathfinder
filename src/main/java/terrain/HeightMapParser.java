@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -48,7 +49,7 @@ public class HeightMapParser {
         InputStream in = new FileInputStream(filePath);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-                var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             // Parse header values
             int width = parseHeader(reader.readLine(), Integer::parseInt, filePath);
             int height = parseHeader(reader.readLine(), Integer::parseInt, filePath);
@@ -70,6 +71,11 @@ public class HeightMapParser {
                 String[] lines = new String[lastRow - firstRow];
                 for (int i = 0; i < lines.length; i++) {
                     lines[i] = reader.readLine();
+
+                    // If there is fewer lines than the header, throw
+                    if (lines[i] == null)
+                        throw new HeightMapParseException(
+                                "Expected " + height + " rows but line was null at row " + (firstRow + i), filePath);
                 }
 
                 // Create new virtual thread for current chunk
@@ -128,7 +134,7 @@ public class HeightMapParser {
             return parser.apply(parsedLine);
         } catch (Exception e) {
             logger.error("Invalid ascii file header: {}", line);
-            throw new HeightMapParseException("Invalid header" + line, e, filePath);
+            throw new HeightMapParseException("Invalid header " + line, e, filePath);
         }
     }
 }
