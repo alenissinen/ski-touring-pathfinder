@@ -17,13 +17,23 @@ test:
 
 pages:
   stage: pages
+  dependencies:
+    - test
   script:
     - mvn clean package javadoc:javadoc -Dshow=private -DskipTests
+    - mkdir -p public/docs
+    - cp -r docs/apidocs/* public/docs/
     - curl -o allure.tgz -L https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
     - tar -zxvf allure.tgz
     - ./allure-2.27.0/bin/allure generate target/allure-results -o public/test-report
-    - mkdir public
-    - cp -r docs/apidocs/* public/
+    - |
+      echo "<html>
+      <hr>
+      <ul>
+        <li><a href='docs/'>Javadocs</a></li>
+        <li><a href='test-report/'>Allure Test Dashboard</a></li>
+      </ul>
+      </body></html>" > public/index.html
   artifacts:
     paths:
       - public
