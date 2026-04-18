@@ -9,6 +9,9 @@ test:
   script:
     - mvn test
   artifacts:
+    when: always
+    paths:
+      - target/allure-results
     reports:
       junit: target/surefire-reports/TEST-*.xml
 
@@ -16,6 +19,9 @@ pages:
   stage: pages
   script:
     - mvn clean package javadoc:javadoc -Dshow=private -DskipTests
+    - curl -o allure.tgz -L https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
+    - tar -zxvf allure.tgz
+    - ./allure-2.27.0/bin/allure generate target/allure-results -o public/test-report
     - mkdir public
     - cp -r docs/apidocs/* public/
   artifacts:

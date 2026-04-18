@@ -17,6 +17,7 @@
         <lwjgl.version>3.4.1</lwjgl.version>
         <lwjgl.natives>natives-windows</lwjgl.natives>
         <imgui.java.version>1.86.11</imgui.java.version>
+        <aspectj.version>1.9.21</aspectj.version>
     </properties>
 
     <profiles>
@@ -230,7 +231,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>6.0.3</version>
+            <version>5.11.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -257,6 +258,18 @@
             <groupId>io.github.spair</groupId>
             <artifactId>imgui-java-natives-windows</artifactId>
             <version>${imgui.java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>${aspectj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-junit5</artifactId>
+            <version>2.34.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -303,6 +316,19 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <argLine>
+                        -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+                    </argLine>
+                    <systemPropertyVariables>
+                        <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>
