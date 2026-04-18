@@ -263,27 +263,6 @@ public class Renderer {
     }
 
     /**
-     * Releases all OpenGL resources held by the renderer.
-     * Called by {@link Application#cleanUp()} on shutdown.
-     */
-    public void cleanUp() {
-        if (this.visitedTex != null) {
-            this.visitedTex.dispose();
-            logger.info("Visited texture cleaned up");
-        }
-
-        if (this.heatmapTex != null) {
-            this.heatmapTex.dispose();
-            logger.info("Heatmap texture cleaned up");
-        }
-
-        if (this.shader != null) {
-            this.shader.dispose();
-            logger.info("Renderer shader resources cleaned up");
-        }
-    }
-
-    /**
      * @return Camera used for view/projection and movement
      */
     public Camera getCamera() {
@@ -322,5 +301,26 @@ public class Renderer {
      */
     public void setSunElevation(int elevation) {
         this.sunElevation = elevation;
+    }
+
+    /**
+     * Releases all OpenGL resources held by the renderer.
+     * Called by {@link Application#cleanUp()} on shutdown.
+     */
+    public void cleanUp() {
+        if (this.visitedTex != null) {
+            this.visitedTex.dispose();
+            logger.info("Visited texture cleaned up");
+        }
+
+        if (this.heatmapTex != null) {
+            this.heatmapTex.dispose();
+            logger.info("Heatmap texture cleaned up");
+        }
+
+        if (this.shader != null) {
+            this.shader.dispose();
+            logger.info("Renderer shader resources cleaned up");
+        }
     }
 }

@@ -39,7 +39,7 @@ public class HeightMap {
     private float dataMaxM = Float.NaN;
 
     /**
-     * Package-private constructor for direct instantiation and testing.
+     * Public constructor for direct instantiation and testing.
      * Production code should use {@link #fromAsciiFile(String)} instead!
      * 
      * @param data     Height grid
@@ -49,7 +49,7 @@ public class HeightMap {
      * @param yLL      yllcorner value from ASCII data
      * @param cellSize cellsize value from ASCII data (meters)
      */
-    HeightMap(
+    public HeightMap(
             float[][] data,
             int width,
             int height,
