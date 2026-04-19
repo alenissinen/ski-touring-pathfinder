@@ -11,10 +11,11 @@ uniform sampler2D uVisitedTex;
 uniform sampler2D uHeatmapTex;
 uniform vec3 uLightPos;
 uniform vec3 uCameraPos;
+uniform int uWireframe;
 
 const vec3 SELECTED_COLOR = vec3(1.0, 0.91, 0.56);
 const vec3 LOW_COLOR = vec3(0.2, 0.16, 0.13);
-const vec3 HIGH_COLOR = vec3(0.95, 0.98, 1.0);
+const vec3 HIGH_COLOR = vec3(0.96, 0.98, 1.0);
 const vec3 WATER_COLOR = vec3(0.16, 0.56, 0.79);
 const vec3 PATH_COLOR = vec3(0.87, 0.0, 1.0);
 const vec3 HEATMAP_GREEN_COLOR = vec3(0.0, 0.8, 0.0);
@@ -23,6 +24,12 @@ const vec3 HEATMAP_RED_COLOR = vec3(0.9, 0.0, 0.0);
 const vec3 HEATMAP_BLACK_COLOR = vec3(0.1, 0.1, 0.1);
 
 void main() {
+    // Check for wireframe mode
+    if(uWireframe == 1) {
+        FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        return;
+    }
+
     // Terrain height difference
     float span = uElevationMax - uElevationMin;
 
@@ -109,15 +116,17 @@ void main() {
     vec3 reflectDir = reflect(-lDir, normal);
     vec3 vDir = normalize(uCameraPos - vWorldPos);
 
-    // Cap diffuse lighting to 0.25 so no completely dark shadows get rendered
-    float diffuse = max(0.25, dot(normal, lDir));
+    // Add ambient lighting to diffuse
+
+    float ambient = 0.15;
+    float diffuse = max(0.0, dot(normal, lDir));
 
     // Calculate specular lighting
     float spec = pow(max(dot(reflectDir, vDir), 0.0), 32.0);
     vec3 specular = vec3(spec * 0.5);
 
-    // Diffuse + specular
-    vec3 lighting = vec3(diffuse) + specular;
+    // Diffuse + specular + ambient
+    vec3 lighting = vec3(ambient + diffuse) + specular;
 
     // Set final color
     FragColor = vec4(finalColor * lighting, 1.0);

@@ -12,6 +12,7 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
+import imgui.type.ImBoolean;
 import imgui.type.ImInt;
 import pathfinding.Node;
 import rendering.Renderer;
@@ -85,6 +86,9 @@ public class ImGuiLayer {
 
     /** Sun elevation angle */
     private int[] elevation = { 30 };
+
+    /** Wireframe toggle */
+    private ImBoolean wireframe = new ImBoolean(false);
 
     /**
      * Initalizes ImGuiLayer
@@ -177,11 +181,13 @@ public class ImGuiLayer {
             this.renderer.setRenderMode(RenderMode.values()[this.selected.get()]);
         }
 
+        ImGui.checkbox("Wireframe", this.wireframe);
         ImGui.sliderInt("Sun azimuth", this.azimuth, 0, 360);
         ImGui.sliderInt("Sun elevation", this.elevation, 0, 180);
 
         this.renderer.setSunAzimuth(this.azimuth[0]);
         this.renderer.setSunElevation(this.elevation[0]);
+        this.renderer.setWireframe(this.wireframe.get());
 
         // Update position variables
         this.posX = ImGui.getWindowPosX();

@@ -57,4 +57,5 @@ https://muntercalculation.com/
 https://www.youtube.com/watch?v=bwq_y0zxpQM  
 https://en.wikipedia.org/wiki/Fresnel_equations  
 https://www.rastertek.com/gl4linuxtut10.html  
-https://allurereport.org/docs/
+https://allurereport.org/docs/  
+https://learnopengl.com/Advanced-Lighting/Gamma-Correction

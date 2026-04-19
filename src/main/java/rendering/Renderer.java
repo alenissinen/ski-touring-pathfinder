@@ -67,6 +67,9 @@ public class Renderer {
     /** Rendering mode */
     private RenderMode renderMode = RenderMode.NORMAL;
 
+    /** Is wireframe rendering is enabled */
+    private boolean wireframe = false;
+
     /** Sun azimuth angle */
     private int sunAzimuth = 180;
 
@@ -157,6 +160,9 @@ public class Renderer {
         Matrix4f MVP = this.buildMVP(model);
         this.shader.setMat4("uMVP", MVP);
 
+        // Set wireframe uniform
+        this.shader.setInt("uWireframe", this.wireframe ? 1 : 0);
+
         HeightMap heightMap = this.chunkManager.getHeightMap();
         this.shader.setFloat("uElevationMin", heightMap.getDataMinElevation());
         this.shader.setFloat("uElevationMax", heightMap.getDataMaxElevation());
@@ -187,8 +193,20 @@ public class Renderer {
         // Clear framebuffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Apply wireframe mode only for terrain rendering
+        if (this.wireframe) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glDisable(GL_CULL_FACE);
+        }
+
         // Render terrain
         renderTerrain();
+
+        // Reset to fill so ImGui renders correctly
+        if (this.wireframe) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glEnable(GL_CULL_FACE);
+        }
 
         // Unbind programs
         this.visitedTex.unbind();
@@ -301,6 +319,15 @@ public class Renderer {
      */
     public void setSunElevation(int elevation) {
         this.sunElevation = elevation;
+    }
+
+    /**
+     * Sets wireframe mode
+     * 
+     * @param wf Wireframe on/off (true/false)
+     */
+    public void setWireframe(boolean wf) {
+        this.wireframe = wf;
     }
 
     /**
