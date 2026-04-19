@@ -4,6 +4,8 @@ Tiedostosta löytyy kaikki Cursor cli-agentilta kysymäni kysymykset ja niihin s
 
 Tiedostoa ylläpitää subagentti, joka kirjoittaa tähän automaattisesti kaikki tiedot. Subagentti myös muuttaa vastauksen markdown yhteensopivaksi.
 
+Maven konfiguraatio ja ci-pipeline on pitkälti opuksella generoituja.
+
 ## Kysymykset
 
 1. [10 features](#kysymys-1)
