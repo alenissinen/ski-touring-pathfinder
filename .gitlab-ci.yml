@@ -1,16 +1,60 @@
 image: maven:3.9.6-eclipse-temurin-21
 
 stages:
+  - test
   - pages
+
+cache:
+  key: allure-history
+  paths:
+    - allure-history-storage
+
+test:
+  stage: test
+  script:
+    - mvn test
+  artifacts:
+    when: always
+    paths:
+      - target/allure-results
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
 
 pages:
   stage: pages
+  dependencies:
+    - test
   script:
-    - mvn clean package javadoc:javadoc
-    - mkdir public
-    - cp -r docs/apidocs/* public/
+    - mvn package javadoc:javadoc -Dshow=private -DskipTests
+    - mkdir -p public/docs
+    - cp -r docs/apidocs/* public/docs
+    - mkdir -p target/allure-results/history
+
+    # Copy contents of the allure report history folder (|| true just to pass the job if history doesnt exist)
+    - cp -r allure-history-storage/* target/allure-results/history/ || true
+
+    # Allure setup
+    - curl -o allure.tgz -L https://github.com/allure-framework/allure2/releases/download/2.34.0/allure-2.34.0.tgz
+    - tar -zxvf allure.tgz
+    - |
+      echo '{
+        "name": "GitLab CI",
+        "type": "gitlab",
+        "buildName": "Build #'${CI_PIPELINE_IID}'",
+        "buildUrl": "'${CI_PIPELINE_URL}'"
+      }' > target/allure-results/executor.json
+    - ./allure-2.34.0/bin/allure generate target/allure-results -o public/test-report --clean
+    # Copy new history into the cache folder
+    - mkdir -p allure-history-storage
+    - cp -r public/test-report/history/* allure-history-storage/
+
+    - |
+      echo "<html>
+      <ul>
+        <li><a href='docs/'>Javadocs</a></li>
+        <li><a href='test-report/'>Allure Test Dashboard</a></li>
+      </ul>
+      </body></html>" > public/index.html
   artifacts:
     paths:
       - public
-  only:
-    - main

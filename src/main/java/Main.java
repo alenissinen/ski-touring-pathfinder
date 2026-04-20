@@ -1,19 +1,83 @@
 import application.Application;
 import application.Config;
+import exceptions.HeightMapParseException;
+import terrain.HeightMap;
+
+import java.io.FileNotFoundException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ui.Launcher;
 
 public class Main {
-    public static void main(String[] args) {
-        // Create application config
-        Config config = new Config.Builder()
-                .title("Ski Touring Pathfinder")
-                .width(1280)
-                .height(720)
-                .targetFps(60)
-                .major(4)
-                .minor(1) // macOS doesn't officially support 4.6
-                .build();
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-        // Start application
-        new Application(config).run();
+    public static void main(String[] args) {
+        // Split the first string in args because when using one maven property, all
+        // arguments are stored in one string
+        if (args.length > 0)
+            args = args[0].split(" ");
+
+        // Launch app without launcher using default/development config
+        if (args.length > 0 && args[0].equals("--noLauncher")) {
+            // Create application config
+            Config config;
+            try {
+                config = new Config.Builder()
+                        .title("Ski Touring Pathfinder")
+                        .width(1280)
+                        .height(720)
+                        .targetFps(240)
+                        .major(4)
+                        .minor(1) // macOS doesn't officially support 4.6
+                        .renderDistance(24)
+                        .movementSpeed(250)
+                        .fov(60)
+                        .heightMap(HeightMap.fromAsciiFile(
+                                "C:\\Users\\ale\\Desktop\\ski-touring-pathfinder\\src\\main\\resources\\T5311A.asc"))
+                        .build();
+            } catch (HeightMapParseException e) {
+                logger.error("Failed to parse height map: {}", e);
+                System.exit(1);
+
+                // This return is to satisfy the compiler, it will never be reached
+                return;
+            } catch (FileNotFoundException e) {
+                logger.error(e.getMessage());
+                System.exit(1);
+
+                // This return is to satisfy the compiler, it will never be reached
+                return;
+            }
+
+            logger.info(config.toString());
+
+            // Start application
+            new Application(config).run();
+            System.exit(0);
+        }
+
+        logger.info("Starting launcher");
+
+        Launcher launcher = new Launcher();
+        Config config = launcher.open();
+
+        // Check if user didn't launch the application
+        if (config == null) {
+            logger.info("Launcher was closed without starting the application");
+            System.exit(0);
+        }
+
+        // Launch the application
+        try {
+            logger.info("Launching application with user config\n{}", config);
+            new Application(config).run();
+        } catch (Exception e) {
+            logger.error("Error occured during application launch: {}", e);
+            System.exit(1);
+        }
+
+        logger.info("Application closed succesfully");
+        System.exit(0);
     }
 }
